@@ -1,6 +1,6 @@
 // components/ConnectWalletModal.tsx
 import React from 'react'
-import { WalletList } from '../../../sdk/components/WalletList'
+import { WalletList } from '../../../sdk'
 import { useAccount, useDisconnect } from 'wagmi'
 
 export function ConnectWalletModal() {

@@ -1,7 +1,7 @@
 // components/ConnectWallet.tsx
 import React from 'react'
 import { useAccount, useDisconnect } from 'wagmi'
-import { WalletList } from '../../sdk/components/WalletList'
+import { WalletList } from '../../sdk'
 
 export function ConnectWallet() {
   const [open, setOpen] = React.useState(false)

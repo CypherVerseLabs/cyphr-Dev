@@ -4,7 +4,6 @@ import {
   Heading,
   Text,
   Button,
-  Stack,
   VStack,
   HStack,
   Link as ChakraLink,

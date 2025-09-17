@@ -194,8 +194,9 @@ export default function AccountWallets() {
         {isConnected ? (
           <>
             <Text fontWeight="semibold" mb={2}>
-              Connected Wallet Address:
+              Hello, {displayName}
             </Text>
+
             <Flex align="center" mb={4} gap={4}>
               <Text fontFamily="monospace" fontSize="lg" bg="gray.100" p={2} borderRadius="md">
                 {shortenAddress(address!)}
