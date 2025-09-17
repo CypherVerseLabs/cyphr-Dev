@@ -1,12 +1,12 @@
-✅ Updated README.md
-✅ Updated README.md
-# Cyph Wallet SDK
+🧩 Cyph Wallet SDK
 
-A plug-and-play React SDK to integrate **Cyph Wallet** login, wallet connection, and social/email login into your dApp. Built with:
+A modular, plug-and-play TypeScript SDK for building EVM-compatible wallet apps and NFT utilities.
 
-- [wagmi](https://wagmi.sh)
-- [Chakra UI](https://chakra-ui.com/)
-- EVM-compatible chains
+Built with:
+- [`ethers` v6](https://docs.ethers.org/)
+- [`wagmi`](https://wagmi.sh)
+- React + Chakra UI integration
+- Tree-shakable, type-safe components and hooks
 
 ---
 
@@ -16,29 +16,28 @@ A plug-and-play React SDK to integrate **Cyph Wallet** login, wallet connection,
 npm install cyph-wallet-sdk
 # or
 yarn add cyph-wallet-sdk
+````
 
+### Peer Dependencies
 
-Peer dependencies required:
+* `react` ^18 or ^19
+* `wagmi` ^2.16.9
+* `@chakra-ui/react` ^2.0.0
 
-react (18 or 19)
+---
 
-wagmi (^2.16.9)
+## 🛠 Usage
 
-@chakra-ui/react (^2.0.0)
+### Wrap Your App
 
-⚙️ Setup
-
-Wrap your app with WagmiProvider and ChakraProvider (typically in _app.tsx, main.tsx, or App.tsx):
-
-import { WagmiProvider, createConfig, http } from 'wagmi'
-import { mainnet } from 'viem/chains'
+```tsx
 import { ChakraProvider } from '@chakra-ui/react'
+import { WagmiProvider, createConfig, http } from 'wagmi'
+ import { mainnet } from 'viem/chains'
 
 const config = createConfig({
   chains: [mainnet],
-  transports: {
-    [mainnet.id]: http()
-  }
+  transports: { [mainnet.id]: http() },
 })
 
 function App() {
@@ -50,81 +49,83 @@ function App() {
     </WagmiProvider>
   )
 }
+```
 
-🧩 Components
-🔌 WalletList
+---
 
-Renders a list of wallet connection options (MetaMask, WalletConnect, Cyph, etc.).
+## 🔌 Components
 
+### `<WalletList />`
+
+```tsx
 import { WalletList } from 'cyph-wallet-sdk'
 
-function ConnectWallet() {
-  return <WalletList />
-}
+<WalletList
+  rpcUrl="http://localhost:8545"
+  chainId={31337}
+  onSelect={() => console.log("Wallet selected")}
+/>
+```
 
+### `<WalletModal />`
 
-Props:
-
-interface WalletListProps {
-  rpcUrl?: string       // Custom RPC URL for Cyph chain
-  chainId?: number      // Chain ID to switch to when connecting
-  onSelect?: () => void // Callback after connect/disconnect
-}
-
-🪪 WalletModal
-
-A full-screen modal with wallet connection options.
-
+```tsx
 import { WalletModal } from 'cyph-wallet-sdk'
 
-function Page() {
-  return <WalletModal isOpen={true} onClose={() => {}} />
-}
+<WalletModal isOpen={true} onClose={() => {}} />
+```
 
-📧 EmailLogin and SocialLoginButton
+### `EmailLogin`, `SocialLoginButton`
 
-Custom login components for off-chain authentication (optional).
-
-import {
-  EmailLogin,
-  SocialLoginButton
-} from 'cyph-wallet-sdk'
+```tsx
+import { EmailLogin, SocialLoginButton } from 'cyph-wallet-sdk'
 
 <EmailLogin />
 <SocialLoginButton provider="google" />
+```
 
-🔐 Hook: useAuth
+---
 
-Access and manage authentication tokens (used internally by wallet components).
+## 🔐 Hooks
 
+### `useAuth`
+
+```tsx
 import { useAuth } from 'cyph-wallet-sdk'
 
 const { token, saveToken, clearToken } = useAuth()
+```
 
-🧑‍💻 Development (Local)
+---
 
-If you're contributing or using this SDK locally:
+## 🧪 Local Development
 
+```bash
 git clone https://github.com/CypherVerseLabs/cyph-wallet-sdk.git
 cd cyph-wallet-sdk
 npm install
 npm run build
+```
 
-📁 Project Structure
+---
+
+## 📁 File Structure
+
+```
 src/
 ├── components/
 │   ├── WalletList.tsx
 │   ├── WalletModal.tsx
 │   └── LoginOnboard/
-│       ├── EmailLogin.tsx
-│       └── SocialLoginButton.tsx
-├── Hooks/
+├── hooks/
 │   └── useAuth.ts
 ├── providers/
-│   └── CypherProvider.tsx
 ├── types.ts
 └── index.ts
+```
 
-🧾 License
+---
 
-MIT © [Your Name or Organization]
+## 📄 License
+
+MIT © CypherVerse Labs
