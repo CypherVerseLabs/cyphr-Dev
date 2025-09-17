@@ -1,0 +1,20 @@
+
+{
+  "name": "cyphwallet",
+  "private": true,
+  "version": "0.0.1",
+  "workspaces": ["src", "sdk", "backend"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace src\" \"npm run dev --workspace backend\"",
+    "dev:src": "npm run dev --workspace src",
+    "dev:sdk": "npm run dev --workspace sdk",
+    "dev:backend": "npm run dev --workspace backend",
+    "build": "concurrently \"npm run build --workspace src\" \"npm run build --workspace backend\"",
+    "build:src": "npm run build --workspace src",
+    "build:sdk": "npm run build --workspace sdk",
+    "build:backend": "npm run build --workspace backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
