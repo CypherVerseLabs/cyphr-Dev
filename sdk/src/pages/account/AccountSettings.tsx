@@ -4,277 +4,337 @@ import {
   Heading,
   Text,
   Button,
-  VStack,
-  HStack,
-  Link as ChakraLink,
-  Divider,
+  Stack,
+  Flex,
   Input,
   FormControl,
   FormLabel,
-  Avatar,
-  Alert,
-  AlertIcon,
+  Textarea,
+  NumberInput,
+  NumberInputField,
   useToast,
+  Select,
+  VStack,
 } from '@chakra-ui/react'
 import { Link } from 'react-router-dom'
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { useWallets } from '../../hooks/useWallets'
+import { fetchUserProfile } from '../../api'
 
-const navLinks = [
-  { label: 'My Account', href: '/account' },
-  { label: 'My Wallets', href: '/account/wallets' },
-  { label: 'NFTs', href: '/account/nfts' },
-  { label: 'Settings', href: '/account/settings' },
-  { label: 'Devices', href: '/account/devices' },
-]
-
-export default function AccountSettings() {
+export default function AccountWallets() {
+  const { address, isConnected } = useAccount()
+  const { connectors, connect } = useConnect()
+  const { disconnect } = useDisconnect()
   const toast = useToast()
 
+  const [loadingConnectorId, setLoadingConnectorId] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState('')
-  const [email, setEmail] = useState('')
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
-  const [avatarFile, setAvatarFile] = useState<File | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
 
-  // Load current user profile on mount (optional, if you have API for it)
+  const {
+    wallets,
+    loading,
+    error,
+    addWallet,
+    deleteWallet,
+  } = useWallets()
+
+  const [formData, setFormData] = useState({
+    address: '',
+    walletType: '',
+    label: '',
+    chainId: '',
+    metadata: '',
+  })
+
+  const shortenAddress = (addr: string) =>
+    `${addr.slice(0, 6)}...${addr.slice(-4)}`
+
   useEffect(() => {
-    async function fetchProfile() {
+    async function loadUserProfile() {
       try {
-        const res = await fetch('/api/account', { credentials: 'include' })
-        if (!res.ok) throw new Error('Failed to load profile')
-        const data = await res.json()
-        setDisplayName(data.displayName || '')
-        setEmail(data.email || '')
-        setAvatarUrl(data.avatarUrl || null)
-      } catch (error) {
-        console.error(error)
-        toast({
-          title: 'Error loading profile',
-          description: 'Could not load your profile information.',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        })
+        const profile = await fetchUserProfile()
+        setDisplayName(profile.displayName || '')
+      } catch (err) {
+        console.error('Failed to load user profile:', err)
       }
     }
-    fetchProfile()
-  }, [toast])
 
-  useEffect(() => {
-    return () => {
-      if (avatarUrl) URL.revokeObjectURL(avatarUrl)
-    }
-  }, [avatarUrl])
+    loadUserProfile()
+  }, [])
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] ?? null
-    if (file) {
-      setAvatarFile(file)
-      setAvatarUrl(URL.createObjectURL(file))
+  const handleConnect = async (connector: any) => {
+    setLoadingConnectorId(connector.id)
+    try {
+      await connect({ connector })
+    } catch (error) {
+      console.error('Failed to connect', error)
+    } finally {
+      setLoadingConnectorId(null)
     }
   }
 
-  const isValidEmail = (email: string) => /^\S+@\S+\.\S+$/.test(email)
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
-  const canSave =
-    displayName.trim().length > 0 && isValidEmail(email) && !isSaving && !isDeleting
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    let parsedMetadata: object | undefined = undefined
 
-  const handleSave = async () => {
-    if (!canSave) return
-    setIsSaving(true)
-
-    try {
-      const formData = new FormData()
-      formData.append('displayName', displayName)
-      formData.append('email', email)
-      if (avatarFile) {
-        formData.append('avatar', avatarFile)
-      }
-
-      const res = await fetch('/api/account', {
-        method: 'PATCH',
-        credentials: 'include',
-        body: formData,
-      })
-
-      if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.message || 'Failed to update profile')
-      }
-
-      const updatedProfile = await res.json()
-
-      setDisplayName(updatedProfile.displayName)
-      setEmail(updatedProfile.email)
-      setAvatarUrl(updatedProfile.avatarUrl)
-
-      setAvatarFile(null) // Clear the file since it's uploaded
-
+    if (!formData.address.trim()) {
       toast({
-        title: 'Profile updated.',
-        description: 'Your display name, email, and avatar have been saved.',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      })
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update profile. Please try again.',
+        title: 'Wallet address is required.',
         status: 'error',
         duration: 3000,
         isClosable: true,
       })
-    } finally {
-      setIsSaving(false)
+      return
     }
-  }
 
-  const handleDeleteAccount = async () => {
-    if (isDeleting) return
-    if (
-      window.confirm(
-        'Are you sure you want to permanently delete your account? This action cannot be undone.'
-      )
-    ) {
-      setIsDeleting(true)
+    if (formData.metadata.trim()) {
       try {
-        const res = await fetch('/api/account', {
-          method: 'DELETE',
-          credentials: 'include',
-        })
-
-        if (!res.ok) {
-          const errorData = await res.json()
-          throw new Error(errorData.message || 'Failed to delete account')
-        }
-
+        parsedMetadata = JSON.parse(formData.metadata)
+      } catch (err) {
         toast({
-          title: 'Account deleted.',
-          description:
-            'Your account and all associated data have been permanently deleted.',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        })
-
-        // Redirect user after account deletion
-        window.location.href = '/'
-      } catch (error: any) {
-        toast({
-          title: 'Error',
-          description: error.message || 'Failed to delete account. Please try again.',
+          title: 'Metadata must be valid JSON.',
           status: 'error',
           duration: 3000,
           isClosable: true,
         })
-      } finally {
-        setIsDeleting(false)
+        return
       }
+    }
+
+    const allowedWalletTypes = ['external', 'embedded', 'smart'] as const
+    type WalletType = typeof allowedWalletTypes[number]
+
+    const walletTypeInput = formData.walletType.trim().toLowerCase()
+    const walletType = allowedWalletTypes.includes(walletTypeInput as WalletType)
+      ? (walletTypeInput as WalletType)
+      : 'external'
+
+    const newWallet = {
+      address: formData.address.trim(),
+      walletType,
+      label: formData.label.trim() || undefined,
+      chainId: formData.chainId ? Number(formData.chainId) : undefined,
+      metadata: parsedMetadata,
+    }
+
+    try {
+      await addWallet(newWallet)
+      toast({
+        title: 'Wallet linked successfully!',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+      setFormData({
+        address: '',
+        walletType: '',
+        label: '',
+        chainId: '',
+        metadata: '',
+      })
+    } catch (err) {
+      toast({
+        title: 'Failed to link wallet.',
+        description: err instanceof Error ? err.message : undefined,
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+      })
     }
   }
 
   return (
-    <HStack align="start" spacing={8} p={6}>
-      {/* Sidebar Navigation */}
-      <VStack align="start" spacing={4} minW="200px" mt={2}>
-        <Heading size="md">⚙️ Account Settings</Heading>
-        <Divider />
-        {navLinks.map((link) => (
-          <ChakraLink
-            key={link.href}
-            as={Link}
-            to={link.href}
-            fontWeight="medium"
-            _hover={{ color: 'blue.400' }}
-          >
-            {link.label}
-          </ChakraLink>
-        ))}
-      </VStack>
+    <Box>
+      <Heading mb={4}>👛 Wallets</Heading>
+      <Text mb={6}>
+        Welcome! This is your overview. From here you can manage wallets, view stats, and more.
+      </Text>
 
-      {/* Settings Content */}
-      <Box flex="1" maxW="600px">
-        <Heading mb={4}>⚙️ Account Settings</Heading>
-        <Text mb={6}>Manage your preferences, password, and profile here.</Text>
+      {isConnected ? (
+        <>
+          <Text fontWeight="semibold" mb={2}>
+            Hello, {displayName}
+          </Text>
 
-        <VStack spacing={6} align="stretch">
-          {/* Display Name */}
-          <FormControl>
-            <FormLabel>Display Name</FormLabel>
-            <Input
-              placeholder="Enter display name"
-              maxLength={32}
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-            />
-            <Text fontSize="sm" color="gray.500" mt={1}>
-              This is your account's name displayed on thirdweb. Please use 32
-              characters at maximum.
+          <Flex align="center" mb={4} gap={4}>
+            <Text fontFamily="monospace" fontSize="lg" bg="gray.100" p={2} borderRadius="md">
+              {shortenAddress(address!)}
             </Text>
-          </FormControl>
-
-          {/* Avatar Upload */}
-          <FormControl>
-            <FormLabel>Avatar</FormLabel>
-            <HStack spacing={4}>
-              <Avatar size="lg" src={avatarUrl ?? undefined} />
-              <Button as="label" cursor="pointer" colorScheme="blue">
-                Upload Avatar
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={handleAvatarChange}
-                />
-              </Button>
-            </HStack>
-            <Text fontSize="sm" color="gray.500" mt={1}>
-              This is your account's avatar. Click on the avatar to upload a
-              custom one. No file chosen.
-            </Text>
-          </FormControl>
-
-          {/* Email Field */}
-          <FormControl>
-            <FormLabel>Email</FormLabel>
-            <Input
-              type="email"
-              placeholder="your-email@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <Button
-              mt={2}
-              colorScheme="blue"
-              onClick={handleSave}
-              isDisabled={!canSave}
-              isLoading={isSaving}
-            >
-              Update Email & Profile
+            <Button size="sm" colorScheme="red" onClick={() => disconnect()}>
+              Disconnect
             </Button>
-          </FormControl>
+          </Flex>
 
-          {/* Delete Account */}
-          <Box border="1px" borderColor="red.300" p={4} borderRadius="md">
-            <Alert status="error" mb={3}>
-              <AlertIcon />
-              Permanently delete your cyph account, the default team
-              "CypherVerseLabs", and all associated data. This action is not
-              reversible.
-            </Alert>
-            <Button
-              colorScheme="red"
-              onClick={handleDeleteAccount}
-              width="100%"
-              isDisabled={isSaving || isDeleting}
-              isLoading={isDeleting}
-            >
-              Delete Account
+          <Box
+            as="form"
+            onSubmit={handleSubmit}
+            mb={6}
+            p={4}
+            borderWidth="1px"
+            borderRadius="md"
+            bg="gray.50"
+          >
+            <Heading size="sm" mb={4}>
+              Link New Wallet
+            </Heading>
+
+            <FormControl id="address" isRequired mb={3}>
+              <FormLabel>Wallet Address</FormLabel>
+              <Input
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                placeholder="0x1234..."
+              />
+            </FormControl>
+
+            <FormControl id="walletType" mb={3}>
+              <FormLabel>Wallet Type</FormLabel>
+              <Select
+                name="walletType"
+                value={formData.walletType}
+                onChange={handleChange}
+                placeholder="Select wallet type"
+              >
+                <option value="external">External</option>
+                <option value="embedded">Embedded</option>
+                <option value="smart">Smart</option>
+              </Select>
+            </FormControl>
+
+            <FormControl id="label" mb={3}>
+              <FormLabel>Label</FormLabel>
+              <Input
+                name="label"
+                value={formData.label}
+                onChange={handleChange}
+                placeholder="My personal wallet"
+                maxLength={64}
+              />
+            </FormControl>
+
+            <FormControl id="chainId" mb={3}>
+              <FormLabel>Chain ID</FormLabel>
+              <NumberInput min={1}>
+                <NumberInputField
+                  name="chainId"
+                  value={formData.chainId}
+                  onChange={handleChange}
+                  placeholder="1"
+                />
+              </NumberInput>
+            </FormControl>
+
+            <FormControl id="metadata" mb={3}>
+              <FormLabel>Metadata (JSON)</FormLabel>
+              <Textarea
+                name="metadata"
+                value={formData.metadata}
+                onChange={handleChange}
+                placeholder={`{\n  "key": "value"\n}`}
+                rows={4}
+              />
+            </FormControl>
+
+            <Button type="submit" colorScheme="blue" mt={2}>
+              Link Wallet
             </Button>
           </Box>
-        </VStack>
-      </Box>
-    </HStack>
+
+          {/* Wallet List */}
+          <Box>
+            <Heading size="sm" mb={2}>
+              Your Wallets
+            </Heading>
+
+            {loading && <Text>Loading wallets...</Text>}
+            {error && <Text color="red.500">Error: {error}</Text>}
+
+            {!loading && !error && wallets.length === 0 && <Text>No wallets found.</Text>}
+
+            {!loading && wallets.length > 0 && (
+              <VStack align="start" spacing={4}>
+                {wallets.map((wallet) => (
+                  <Box
+                    key={wallet.address}
+                    p={3}
+                    borderWidth="1px"
+                    borderRadius="md"
+                    w="100%"
+                  >
+                    <Text fontFamily="monospace" fontWeight="bold">
+                      {wallet.address}
+                    </Text>
+                    <Text fontSize="sm" color="gray.600">
+                      Type: {wallet.walletType}
+                    </Text>
+                    {wallet.label && <Text fontSize="sm">Label: {wallet.label}</Text>}
+                    {wallet.chainId && (
+                      <Text fontSize="sm" color="gray.600">
+                        Chain ID: {wallet.chainId}
+                      </Text>
+                    )}
+                    {wallet.metadata && (
+                      <Box
+                        as="pre"
+                        p={2}
+                        mt={2}
+                        bg="gray.100"
+                        borderRadius="md"
+                        whiteSpace="pre-wrap"
+                        maxHeight="150px"
+                        overflowY="auto"
+                        fontSize="sm"
+                      >
+                        {JSON.stringify(wallet.metadata, null, 2)}
+                      </Box>
+                    )}
+                    <Button
+                      mt={3}
+                      size="sm"
+                      colorScheme="red"
+                      onClick={() => deleteWallet(wallet.address)}
+                    >
+                      Delete
+                    </Button>
+                  </Box>
+                ))}
+              </VStack>
+            )}
+          </Box>
+        </>
+      ) : (
+        <>
+          <Text mb={4}>No wallet connected.</Text>
+          <Stack spacing={2}>
+            {connectors.map((connector) => (
+              <Button
+                key={connector.id}
+                onClick={() => handleConnect(connector)}
+                isLoading={loadingConnectorId === connector.id}
+                disabled={!connector.ready}
+              >
+                Connect {connector.name}
+              </Button>
+            ))}
+          </Stack>
+        </>
+      )}
+
+      <Stack spacing={4} mt={6}>
+        <Link to="/wallets">
+          <Button colorScheme="blue" w="100%">
+            Go to Wallet Manager
+          </Button>
+        </Link>
+      </Stack>
+    </Box>
   )
 }

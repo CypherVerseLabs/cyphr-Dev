@@ -1,4 +1,12 @@
 // index.tsx
+console.log('ENV:', import.meta.env.VITE_WC_PROJECT_ID);
+
+console.log('import.meta.env:', import.meta.env);
+console.log('VITE_WC_PROJECT_ID:', import.meta.env.VITE_WC_PROJECT_ID)
+console.log('VITE_TEST:', import.meta.env.VITE_TEST)
+console.log('FULL ENV:', import.meta.env)
+
+
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
@@ -21,11 +29,13 @@ import { mainnet, sepolia } from 'wagmi/chains'
 // App Components
 import App from './App'
 import { CypherProvider } from './CypherProvider'
-import { Toaster } from 'sonner'
 
 // Chains
 import { cyphChain } from './chains/cyphChain'
 import { injected, walletConnect, baseAccount } from 'wagmi/connectors'
+
+console.log('ENV:', import.meta.env.VITE_WC_PROJECT_ID);
+
 
 // 🌈 Theme Setup
 const themeConfig: ThemeConfig = {
@@ -65,7 +75,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <BrowserRouter>
             <App />
           </BrowserRouter>
-          <Toaster position="top-center" richColors expand />
         </CypherProvider>
       </WagmiProvider>
     </ChakraProvider>

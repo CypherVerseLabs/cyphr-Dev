@@ -15,13 +15,17 @@ import {
 } from '../../../src/Api/api'
 
 import { useAuth } from '../hooks/useAuth'
-import { toast } from 'sonner'
+import { useToast } from '@chakra-ui/react'
+
+// 🧾 Mutation input type
+type CreateWalletInput = {
+  email: string
+  walletAddress: string
+  walletType: WalletType
+}
 
 // 📌 Helper for consistent query key
-function getWalletsQueryKey(
-  filterType: WalletType | '',
-  page: number
-) {
+function getWalletsQueryKey(filterType: WalletType | '', page: number) {
   return ['wallets', filterType || 'all', page]
 }
 
@@ -30,6 +34,7 @@ export default function WalletManager() {
   const { disconnect } = useDisconnect()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const toast = useToast()
 
   const { token, saveToken, clearToken } = useAuth()
 
@@ -39,53 +44,66 @@ export default function WalletManager() {
   const [page, setPage] = useState(1)
   const pageSize = 5
 
-  // 🛠️ Mutation: Create Wallet
-  const createWalletMutation = useMutation({
-    mutationFn: async ({
-      email,
-      walletAddress,
-      walletType,
-    }: {
-      email: string
-      walletAddress: string
-      walletType: WalletType
-    }) => {
+  // ✅ Create Wallet Mutation
+  const createWalletMutation = useMutation<
+    any, // or you can replace with `CreateWalletResponse`
+    unknown,
+    CreateWalletInput
+  >({
+    mutationFn: async ({ email, walletAddress, walletType }) => {
       const response = await createUserWallet(email, walletAddress, walletType)
-      if (response.token) {
-        saveToken(response.token)
-      }
+      if (response.token) saveToken(response.token)
       return response
     },
     onSuccess: () => {
-      toast.success('✅ Wallet synced successfully!')
+      toast({
+        title: 'Wallet synced successfully!',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
       queryClient.invalidateQueries({
         queryKey: getWalletsQueryKey(filterType, page),
       })
     },
     onError: (error) => {
-      toast.error(
-        error instanceof Error
-          ? `❌ ${error.message}`
-          : '❌ Failed to sync wallet'
-      )
-    },
-  })
-
-  // 🗑️ Mutation: Delete Wallet
-  const deleteMutation = useMutation({
-    mutationFn: (walletId: string) => deleteWallet(walletId),
-    onSuccess: () => {
-      toast.success('🗑️ Wallet deleted')
-      queryClient.invalidateQueries({
-        queryKey: getWalletsQueryKey(filterType, page),
+      toast({
+        title: 'Failed to sync wallet',
+        description: error instanceof Error ? error.message : undefined,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
       })
     },
-    onError: () => {
-      toast.error('❌ Failed to delete wallet')
-    },
   })
 
-  // 📦 Query: Wallets
+  // ✅ Delete Wallet Mutation
+  // 🛠 FIXED: Match the actual return type
+const deleteMutation = useMutation<{ success: boolean }, unknown, string>({
+  mutationFn: (walletId: string) => deleteWallet(walletId),
+  onSuccess: () => {
+    toast({
+      title: 'Wallet deleted',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    })
+    queryClient.invalidateQueries({
+      queryKey: getWalletsQueryKey(filterType, page),
+    })
+  },
+  onError: () => {
+    toast({
+      title: 'Failed to delete wallet',
+      status: 'error',
+      duration: 3000,
+      isClosable: true,
+    })
+  },
+})
+
+
+  // 📦 Wallets Query
   const walletsQuery = useQuery({
     queryKey: getWalletsQueryKey(filterType, page),
     queryFn: () => fetchWallets(page, pageSize, filterType || undefined),
@@ -94,7 +112,12 @@ export default function WalletManager() {
 
   const handleSync = () => {
     if (!address || !email) {
-      toast.warning('⚠️ Email and connected wallet are required.')
+      toast({
+        title: 'Email and connected wallet required',
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      })
       return
     }
 
@@ -151,7 +174,10 @@ export default function WalletManager() {
       {/* Connected Wallet Info */}
       <div>
         <p className="text-sm text-gray-600">
-          Connected Wallet: <span className="font-medium text-black">{shortenAddress(address)}</span>
+          Connected Wallet:{' '}
+          <span className="font-medium text-black">
+            {shortenAddress(address)}
+          </span>
         </p>
         {token && (
           <div className="flex items-center justify-between mt-1">
@@ -244,6 +270,7 @@ export default function WalletManager() {
             </button>
             <span className="text-sm">Page {page}</span>
             <button
+
               onClick={() => setPage((prev) => prev + 1)}
               disabled={walletsQuery.data?.wallets.length < pageSize}
               className="text-sm px-3 py-1 border rounded disabled:opacity-50"

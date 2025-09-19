@@ -12,6 +12,7 @@ import AccountOverview from '../sdk/src/pages/account/AccountOverview'
 import AccountSettings from '../sdk/src/pages/account/AccountSettings'
 import AccountWallets from '../sdk/src/pages/account/AccountWallets'
 import AccountDevices from '../sdk/src/pages/account/AccountDevices'
+import NFTs from '../sdk/src/pages/account/NFTs'
 
 export default function App() {
   return (
@@ -48,6 +49,9 @@ export default function App() {
           <Route path="settings" element={<AccountSettings />} />
           <Route path="wallets" element={<AccountWallets />} />
           <Route path="devices" element={<AccountDevices />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="nfts" element={<NFTs />} />
+
         </Route>
       </Route>
 

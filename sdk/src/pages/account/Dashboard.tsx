@@ -1,4 +1,4 @@
-import  { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Box,
   Heading,
@@ -6,22 +6,13 @@ import {
   Button,
   Stack,
   VStack,
-  HStack,
-  Link as ChakraLink,
-  Divider,
   Spinner,
+  
+  
 } from '@chakra-ui/react'
 import { Link } from 'react-router-dom'
 import { useWallets } from '../../hooks/useWallets'
-import { fetchUserProfile, UserProfile } from '../../api' //    to your sdk api
-
-const navLinks = [
-  { label: 'My Account', href: '/account' },
-  { label: 'My Wallets', href: '/account/wallets' },
-  { label: 'NFTs', href: '/account/nfts' },
-  { label: 'Settings', href: '/account/settings' },
-  { label: 'Devices', href: '/account/devices' },
-]
+import { fetchUserProfile, UserProfile } from '../../api'
 
 function formatBalance(balance: number | string | undefined) {
   if (balance == null) return '-'
@@ -56,98 +47,77 @@ export default function Dashboard() {
   }, 0)
 
   return (
-    <HStack align="start" spacing={8} p={6}>
-      {/* Sidebar Navigation */}
-      <VStack align="start" spacing={4} minW="200px" mt={2}>
-        <Heading size="md">🔐 My Dashboard</Heading>
-        <Divider />
-        {navLinks.map((link) => (
-          <ChakraLink
-            key={link.href}
-            as={Link}
-            to={link.href}
-            fontWeight="medium"
-            _hover={{ color: 'blue.400' }}
-          >
-            {link.label}
-          </ChakraLink>
-        ))}
-      </VStack>
+    <Box p={6}>
+      <Heading mb={4}>📊 Dashboard</Heading>
 
-      {/* Dashboard Content */}
-      <Box flex="1">
-        <Heading mb={4}>📊 Dashboard</Heading>
+      {/* Greeting */}
+      <Text mb={6} fontSize="lg" fontWeight="semibold">
+        Welcome{displayName ? `, ${displayName}` : ''}! This is your overview. From here you
+        can manage wallets, view stats, and more.
+      </Text>
 
-        {/* Greeting */}
-        <Text mb={6} fontSize="lg" fontWeight="semibold">
-          Welcome{displayName ? `, ${displayName}` : ''}! This is your overview. From here you
-          can manage wallets, view stats, and more.
-        </Text>
+      <Stack spacing={6} mb={6}>
+        <Link to="/wallets">
+          <Button colorScheme="blue" w="100%">
+            Go to Wallet Manager
+          </Button>
+        </Link>
+      </Stack>
 
-        <Stack spacing={6} mb={6}>
-          <Link to="/wallets">
-            <Button colorScheme="blue" w="100%">
-              Go to Wallet Manager
-            </Button>
-          </Link>
-        </Stack>
+      {/* Wallet Summary */}
+      <Box p={4} borderWidth="1px" borderRadius="md" bg="gray.50">
+        <Heading size="sm" mb={4}>
+          Wallet Summary
+        </Heading>
 
-        {/* Wallet Summary */}
-        <Box p={4} borderWidth="1px" borderRadius="md" bg="gray.50">
-          <Heading size="sm" mb={4}>
-            Wallet Summary
-          </Heading>
+        {loading && <Spinner />}
 
-          {loading && <Spinner />}
+        {error && (
+          <Text color="red.500" mb={4}>
+            Error loading wallets: {error}
+          </Text>
+        )}
 
-          {error && (
-            <Text color="red.500" mb={4}>
-              Error loading wallets: {error}
+        {!loading && !error && wallets.length === 0 && (
+          <Text>No wallets linked yet. Start by adding a new wallet!</Text>
+        )}
+
+        {!loading && wallets.length > 0 && (
+          <>
+            <Text fontWeight="bold" mb={3}>
+              Total Balance: {formatBalance(totalBalance)}
             </Text>
-          )}
-
-          {!loading && !error && wallets.length === 0 && (
-            <Text>No wallets linked yet. Start by adding a new wallet!</Text>
-          )}
-
-          {!loading &&
-            wallets.length > 0 && (
-              <>
-                <Text fontWeight="bold" mb={3}>
-                  Total Balance: {formatBalance(totalBalance)}
-                </Text>
-                <VStack align="start" spacing={3}>
-                  {wallets.map((wallet) => (
-                    <Box
-                      key={wallet.id}
-                      p={3}
-                      borderWidth="1px"
-                      borderRadius="md"
-                      w="100%"
-                      bg="white"
-                    >
-                      <Text fontWeight="bold" fontFamily="monospace" isTruncated>
-                        {wallet.walletAddress}
-                      </Text>
-                      <Text fontSize="sm" color="gray.600">
-                        Type: {wallet.walletType}
-                      </Text>
-                      <Text fontSize="sm" color="gray.700">
-                        Balance: {formatBalance(wallet.balance)}
-                      </Text>
-                      {wallet.label && <Text fontSize="sm">Label: {wallet.label}</Text>}
-                      {wallet.chainId && (
-                        <Text fontSize="sm" color="gray.600">
-                          Chain ID: {wallet.chainId}
-                        </Text>
-                      )}
-                    </Box>
-                  ))}
-                </VStack>
-              </>
-            )}
-        </Box>
+            <VStack align="start" spacing={3}>
+              {wallets.map((wallet) => (
+                <Box
+                  key={wallet.id}
+                  p={3}
+                  borderWidth="1px"
+                  borderRadius="md"
+                  w="100%"
+                  bg="white"
+                >
+                  <Text fontWeight="bold" fontFamily="monospace" isTruncated>
+                    {wallet.walletAddress}
+                  </Text>
+                  <Text fontSize="sm" color="gray.600">
+                    Type: {wallet.walletType}
+                  </Text>
+                  <Text fontSize="sm" color="gray.700">
+                    Balance: {formatBalance(wallet.balance)}
+                  </Text>
+                  {wallet.label && <Text fontSize="sm">Label: {wallet.label}</Text>}
+                  {wallet.chainId && (
+                    <Text fontSize="sm" color="gray.600">
+                      Chain ID: {wallet.chainId}
+                    </Text>
+                  )}
+                </Box>
+              ))}
+            </VStack>
+          </>
+        )}
       </Box>
-    </HStack>
+    </Box>
   )
 }
