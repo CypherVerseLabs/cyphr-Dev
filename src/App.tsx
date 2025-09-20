@@ -38,7 +38,7 @@ export default function App() {
 
         {/* ✅ Nested Account Routes */}
         <Route
-          path="/account/*"
+          path="/login/*"
           element={
             <PrivateRoute>
               <AccountLayout />

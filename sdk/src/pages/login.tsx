@@ -1,5 +1,6 @@
-import WalletModal from "../components/WalletModal/Modal";
+import { WalletList } from "../components/WalletList";
+
 
 export default function Login() {
-  return < WalletModal/>
+  return <WalletList/>
 }

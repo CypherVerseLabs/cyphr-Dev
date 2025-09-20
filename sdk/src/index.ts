@@ -1,8 +1,8 @@
 // src/index.ts
 
 // Default export
-import { CypherProvider } from './providers/CypherProvider'
-export default CypherProvider
+export { CypherProvider } from './providers/CypherProvider'
+
 
 // Named exports
 export * from './components/WalletList'
