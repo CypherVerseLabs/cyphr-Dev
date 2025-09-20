@@ -15,14 +15,14 @@ import {
   Flex,
 } from '@chakra-ui/react'
 
-import { WalletList } from './WalletList'
-import { EmailLogin } from './LoginOnboard/EmailLogin'
-import { SocialLoginButton } from './LoginOnboard/SocialLoginButton'
+import { WalletList } from '../WalletList'
+import { EmailLogin } from '../LoginOnboard/EmailLogin'
+import { SocialLoginButton } from '../LoginOnboard/SocialLoginButton'
 import DarkModeToggle from './DarkModeToggle'
 import Footer from './Footer'
 
 import { useAccount, useDisconnect } from 'wagmi'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 import { useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
@@ -110,7 +110,7 @@ export default function WalletModal({
                 {isConnected ? `Welcome ${shorten(address)}` : 'Connect'}
               </Text>
             </Flex>
-            <DarkModeToggle />
+            {!themeOverride && <DarkModeToggle />}
           </Flex>
 
           <ModalCloseButton />

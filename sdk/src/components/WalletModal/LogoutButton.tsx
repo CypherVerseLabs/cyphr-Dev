@@ -1,6 +1,6 @@
 // components/LogoutButton.tsx
 import { Button } from '@chakra-ui/react'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 
 export default function LogoutButton() {
   const { clearToken } = useAuth()

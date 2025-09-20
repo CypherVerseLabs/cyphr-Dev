@@ -16,9 +16,11 @@ import {
   Stack,
 } from '@chakra-ui/react'
 import { HamburgerIcon } from '@chakra-ui/icons'
-import DarkModeToggle from '../components/DarkModeToggle'
+import DarkModeToggle from './WalletModal/DarkModeToggle'
 import { NavLink, Outlet } from 'react-router-dom'
-import WalletModal from '../components/WalletModal'
+import WalletModal from './WalletModal/Modal'
+
+
 
 const navLinks = [
   { label: 'Home', to: '/login' },
