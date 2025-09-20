@@ -8,7 +8,7 @@ export { default as ConnectedUserMenu } from './cards/ConnectedUserMenu'
 export { CreateApiKeyModal } from './CreateApiKeyModal'
 
 // External files — use export * for named exports or when unsure
-export * from './DarkModeToggle'
+export * from '../../../../src/components/DarkModeToggle'
 export * from './components/Footer'
 export * from '../WalletList'
 export * from '../LoginOnboard/EmailLogin'

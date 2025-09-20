@@ -7,7 +7,7 @@ import WalletModal from '../../../sdk/src/components/WalletModal/Modal'
 export default function Login() {
   const { isConnected } = useAccount()
   const navigate = useNavigate()
-  const { isOpen, onOpen, onClose } = useDisclosure({ defaultIsOpen: true })
+  const { isOpen, onClose } = useDisclosure({ defaultIsOpen: true })
 
   // Close modal and redirect to /account/dashboard after login
   useEffect(() => {

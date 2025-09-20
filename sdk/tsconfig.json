@@ -21,6 +21,6 @@
     // ✅ Add this line:
     "resolveJsonModule": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "../src/pages/Home.tsx", "../src/pages/login/login.tsx", "../src/pages/docs.tsx", "../src/components/Layout.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "../src/pages/Home.tsx", "../src/pages/login/login.tsx", "../src/pages/docs.tsx", "../src/components/Layout.tsx", "../src/components/DarkModeToggle.tsx"],
   "exclude": ["dist", "node_modules"]
 }

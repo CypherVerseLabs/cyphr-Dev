@@ -17,7 +17,7 @@ import {
   
 } from '@chakra-ui/react'
 import { HamburgerIcon } from '@chakra-ui/icons'
-import DarkModeToggle from '../../sdk/src/components/WalletModal/DarkModeToggle'
+import DarkModeToggle from './DarkModeToggle'
 import { NavLink, Outlet } from 'react-router-dom'
 import logo1 from '../../public/logo1.png'
 import { Link as RouterLink } from 'react-router-dom'
