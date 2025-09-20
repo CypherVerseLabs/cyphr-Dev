@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useWallets } from '../hooks/useWallets'
 import { fetchUserProfile, UserProfile } from '../api'
-import type { Wallet } from '../types'
+import type { Wallet } from '../types/types'
 
 interface ApiContextValue {
   user?: UserProfile

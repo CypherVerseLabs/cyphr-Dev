@@ -3,8 +3,8 @@
 // Local files (default exports)
 export { default as WalletModal } from './Modal'
 export { default as ModalHeader } from './components/ModalHeader'
-export { default as LoginOptions } from './LoginOptions'
-export { default as ConnectedUserMenu } from './ConnectedUserMenu'
+export { default as LoginOptions } from './cards/LoginOptionsMenu'
+export { default as ConnectedUserMenu } from './cards/ConnectedUserMenu'
 export { CreateApiKeyModal } from './CreateApiKeyModal'
 
 // External files — use export * for named exports or when unsure

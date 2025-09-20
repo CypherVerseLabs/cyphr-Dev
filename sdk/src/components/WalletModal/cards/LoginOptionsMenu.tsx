@@ -1,7 +1,7 @@
 import { VStack, HStack, Divider, Text } from '@chakra-ui/react'
-import { WalletList } from '../WalletList'
-import { EmailLogin } from '../LoginOnboard/EmailLogin'
-import { SocialLoginButton } from '../LoginOnboard/SocialLoginButton'
+import { WalletList } from '../../WalletList'
+import { EmailLogin } from '../../LoginOnboard/EmailLogin'
+import { SocialLoginButton } from '../../LoginOnboard/SocialLoginButton'
 
 interface LoginOptionsProps {
   rpcUrl: string
@@ -10,7 +10,7 @@ interface LoginOptionsProps {
   onClose: () => void
 }
 
-export default function LoginOptions({
+export default function LoginOptionsMenu({
   rpcUrl,
   chainId,
   onlyWallets,
@@ -35,7 +35,7 @@ export default function LoginOptions({
           <Divider />
 
           <VStack align="stretch" spacing={2}>
-            <Text fontSize="sm" fontWeight="semibold" color="gray.600" _dark={{ color: 'gray.300' }}>
+            <Text fontSize="sm" fontWeight="semibold" color="#" _dark={{ color: 'gray.300' }}>
               Continue with Email
             </Text>
             <EmailLogin />

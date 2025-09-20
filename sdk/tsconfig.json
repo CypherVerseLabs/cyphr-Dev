@@ -21,6 +21,6 @@
     // ✅ Add this line:
     "resolveJsonModule": true
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "../src/pages/Home.tsx", "../src/pages/login/login.tsx", "../src/pages/docs.tsx", "../src/components/Layout.tsx"],
   "exclude": ["dist", "node_modules"]
 }

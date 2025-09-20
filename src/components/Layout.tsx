@@ -4,7 +4,6 @@ import {
   HStack,
   IconButton,
   Image,
-  Heading,
   Link,
   useColorModeValue,
   Drawer,
@@ -14,18 +13,20 @@ import {
   DrawerCloseButton,
   useDisclosure,
   Stack,
+  Button,
 } from '@chakra-ui/react'
 import { HamburgerIcon } from '@chakra-ui/icons'
-import DarkModeToggle from './WalletModal/DarkModeToggle'
+import DarkModeToggle from '../../sdk/src/components/WalletModal/DarkModeToggle'
 import { NavLink, Outlet } from 'react-router-dom'
-import WalletModal from './WalletModal/Modal'
-
-
+import logo1 from '../../public/logo1.png'
 
 const navLinks = [
-  { label: 'Home', to: '/login' },
-  { label: 'Wallets', to: '/account/wallets' },
-  { label: 'Dashboard', to: '/account/dashboard' },
+  { label: 'Products', to: '/products' },
+  { label: 'Solutions', to: '/solutions' },
+  { label: 'Company', to: '/company' },
+  { label: 'Resources', to: '/resources' },
+  { label: 'DevTools', to: '/devTools' },
+  { label: 'SDKs', to: '/sdks' }
 ]
 
 export default function Layout() {
@@ -46,8 +47,7 @@ export default function Layout() {
       >
         <Flex align="center" justify="space-between">
           <HStack spacing={3}>
-            <Image src="/logo.png" alt="CypherVerseLabs logo" boxSize="36px" />
-            <Heading size="md">CypherVerseLabs</Heading>
+            <Image src={logo1} alt="CypherVerseLabs logo" boxSize="36px" />
           </HStack>
 
           <HStack spacing={6} display={{ base: 'none', md: 'flex' }}>
@@ -67,7 +67,15 @@ export default function Layout() {
 
           <HStack spacing={4}>
             <DarkModeToggle />
-            <WalletModal />
+            <Button
+              as={NavLink}
+              to="/login"
+              colorScheme="teal"
+              variant="solid"
+              size="sm"
+            >
+              Login
+            </Button>
             <IconButton
               icon={<HamburgerIcon />}
               aria-label="Open menu"
@@ -99,6 +107,16 @@ export default function Layout() {
                   {label}
                 </Link>
               ))}
+              <Button
+                as={NavLink}
+                to="/login"
+                colorScheme="teal"
+                variant="solid"
+                size="md"
+                onClick={onClose}
+              >
+                Login
+              </Button>
             </Stack>
           </DrawerBody>
         </DrawerContent>

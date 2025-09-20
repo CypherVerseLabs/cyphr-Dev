@@ -12,12 +12,12 @@ import {
   useDisclosure,
   useColorMode,
   useColorModeValue,
+  useToken,
 } from '@chakra-ui/react'
-import { useToken } from '@chakra-ui/react'
 
 import Footer from './components/Footer'
 import ModalHeader from './components/ModalHeader'
-import UnauthenticatedContent from './UnauthenticatedContent' // ✅ correct
+import UnauthenticatedContent from './UnauthenticatedContent'
 import AuthenticatedContent from './AuthenticatedContent'
 
 import { useAccount, useDisconnect, useEnsName } from 'wagmi'
@@ -38,6 +38,11 @@ export interface WalletModalProps {
   modalSize?: ModalProps['size']
   modalProps?: Partial<Omit<ModalProps, 'isOpen' | 'onClose'>>
   themeColor?: string
+
+  // New props for controlled mode and hiding button
+  forceOpen?: boolean             // control modal open state externally
+  onForceClose?: () => void       // external callback for closing modal
+  hideButton?: boolean            // hide the connect button when true
 }
 
 const shortenAddress = (addr?: string) =>
@@ -61,8 +66,19 @@ export default function WalletModal({
   modalSize = ['xs', 'sm', 'md'],
   modalProps = {},
   themeColor = 'gold.500',
+  forceOpen,
+  onForceClose,
+  hideButton = false,
 }: WalletModalProps) {
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  // Use internal disclosure unless controlled externally
+  const internalDisclosure = useDisclosure()
+
+  const isControlled = typeof forceOpen === 'boolean'
+
+  const isOpen = isControlled ? forceOpen : internalDisclosure.isOpen
+  const onOpen = isControlled ? () => {} : internalDisclosure.onOpen
+  const onClose = isControlled ? (onForceClose || (() => {})) : internalDisclosure.onClose
+
   const { isConnected, address } = useAccount()
   const { disconnect } = useDisconnect()
   const { clearToken, token } = useAuth()
@@ -98,19 +114,22 @@ export default function WalletModal({
 
   return (
     <>
-      <Button
-        onClick={onOpen}
-        size="sm"
-        variant="solid"
-        bg={buttonBg}
-        color={buttonTextColor}
-        _hover={{ bg: buttonHoverBg }}
-        px={4}
-        py={2}
-        fontSize="sm"
-      >
-        {isConnected ? 'Connected' : buttonText}
-      </Button>
+      {/* Only render the button if hideButton is false */}
+      {!hideButton && (
+        <Button
+          onClick={onOpen}
+          size="sm"
+          variant="solid"
+          bg={buttonBg}
+          color={buttonTextColor}
+          _hover={{ bg: buttonHoverBg }}
+          px={4}
+          py={2}
+          fontSize="sm"
+        >
+          {isConnected ? 'Connected' : buttonText}
+        </Button>
+      )}
 
       <Modal
         isOpen={isOpen}
