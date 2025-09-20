@@ -7,13 +7,15 @@ import WalletModal from '../../../sdk/src/components/WalletModal/Modal'
 export default function Login() {
   const { isConnected } = useAccount()
   const navigate = useNavigate()
-  const { isOpen, onClose } = useDisclosure({ defaultIsOpen: true }) // start open
+  const { isOpen, onOpen, onClose } = useDisclosure({ defaultIsOpen: true })
 
+  // Close modal and redirect to /account/dashboard after login
   useEffect(() => {
     if (isConnected) {
-      navigate('/dashboard')
+      onClose()
+      navigate('/account/dashboard')
     }
-  }, [isConnected, navigate])
+  }, [isConnected, navigate, onClose])
 
   return (
     <Box textAlign="center" py={16}>
@@ -25,9 +27,9 @@ export default function Login() {
           Connect your wallet to continue
         </Text>
         <WalletModal
-          forceOpen={isOpen}    // control open state externally
-          onForceClose={onClose} // function to close the modal
-          hideButton={true}     // hide the connect button
+          forceOpen={isOpen}
+          onForceClose={onClose}
+          hideButton={true}
         />
       </VStack>
     </Box>
