@@ -21,7 +21,7 @@ import DarkModeToggle from './DarkModeToggle'
 import { NavLink, Outlet } from 'react-router-dom'
 import logo1 from '../../public/logo1.png'
 import { Link as RouterLink } from 'react-router-dom'
-import { keyframes } from '@emotion/react'
+import WalletModal from '../../sdk/src/components/Modal'
 
 
 const navLinks = [
@@ -34,18 +34,6 @@ const navLinks = [
 ]
 
 // Keyframes for floating and pulsing animation
-const floatPulse = keyframes`
-  0%, 100% {
-    transform: translateY(0) scale(1);
-    opacity: 0.7;
-    box-shadow: 0 0 30px 15px rgba(255, 215, 0, 0.6);
-  }
-  50% {
-    transform: translateY(-15px) scale(1.1);
-    opacity: 1;
-    box-shadow: 0 0 50px 25px rgba(255, 215, 0, 1);
-  }
-`
 
 export default function Layout() {
   const { isOpen, onOpen, onClose } = useDisclosure()
@@ -56,67 +44,7 @@ export default function Layout() {
   return (
     <Box minH="100vh" bg={bg} color={textColor} position="relative" overflow="hidden">
       
-      {/* Glowing blobs background */}
-      <Box
-        position="fixed"
-        top={0}
-        left={0}
-        w="100vw"
-        h="100vh"
-        pointerEvents="none"
-        zIndex={-1}
-        overflow="hidden"
-      >
-        {/* Each blob */}
-        <Box
-          position="absolute"
-          bg="rgba(255, 215, 0, 0.3)"
-          w="180px"
-          h="180px"
-          borderRadius="full"
-          filter="blur(60px)"
-          top="10%"
-          left="15%"
-          animation={`${floatPulse} 6s ease-in-out infinite`}
-          transitionDelay="0s"
-        />
-        <Box
-          position="absolute"
-          bg="rgba(255, 215, 0, 0.2)"
-          w="250px"
-          h="250px"
-          borderRadius="full"
-          filter="blur(70px)"
-          top="50%"
-          left="70%"
-          animation={`${floatPulse} 8s ease-in-out infinite`}
-          transitionDelay="2s"
-        />
-        <Box
-          position="absolute"
-          bg="rgba(255, 215, 0, 0.25)"
-          w="200px"
-          h="200px"
-          borderRadius="full"
-          filter="blur(50px)"
-          top="75%"
-          left="30%"
-          animation={`${floatPulse} 7s ease-in-out infinite`}
-          transitionDelay="4s"
-        />
-        <Box
-          position="absolute"
-          bg="rgba(255, 215, 0, 0.15)"
-          w="300px"
-          h="300px"
-          borderRadius="full"
-          filter="blur(90px)"
-          top="30%"
-          left="80%"
-          animation={`${floatPulse} 9s ease-in-out infinite`}
-          transitionDelay="1s"
-        />
-      </Box>
+
 
       {/* HEADER */}
       <Box
@@ -166,16 +94,11 @@ export default function Layout() {
 
           <HStack spacing={4}>
             <DarkModeToggle />
-            <Button
-              as={NavLink}
-              to="/login"
-              colorScheme="yellow"
-              variant="solid"
-              size="sm"
-              aria-label="Login"
-            >
-              Login
-            </Button>
+            <WalletModal themeColor="#c2a225" 
+            
+            />
+
+            
             <IconButton
               icon={<HamburgerIcon />}
               aria-label="Open menu"

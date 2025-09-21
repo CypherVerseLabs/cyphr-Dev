@@ -1,6 +1,6 @@
 import { createConfig, http, cookieStorage, createStorage } from 'wagmi'
 import { mainnet, sepolia } from 'wagmi/chains'
-import { cyphChain } from '../chains/cyphChain'
+import { cyphChain } from '../../sdk/src/chains/cyphChain'
 
 export const config = createConfig({
   chains: [mainnet, sepolia, cyphChain],  // <-- add your custom chain here

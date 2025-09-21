@@ -1,36 +1,58 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { State, WagmiProvider } from 'wagmi'
+import { SecretKeyContext } from '../contexts/SecretKeyContext'
+import { createCypherConfig } from '../lib/config'
 
-import { createCypherConfig } from '../lib/config' // ✅ Correct import
-
-type Props = {
-  children: React.ReactNode,
-  initialState: State | undefined,
+type CyphrClient = {
+  children: React.ReactNode
+  initialState?: State
+  projectId?: string
+  secretKey?: string
+  rpcUrl?: string
 }
 
-export function CypherProvider({ children, initialState }: Props) {
+export function CypherProvider({
+  children,
+  initialState,
+  projectId,
+  secretKey,
+  rpcUrl = 'http://localhost:8545',
+}: CyphrClient) {
   const [queryClient] = useState(() => new QueryClient())
 
-  const projectId = import.meta.env.VITE_WC_PROJECT_ID
-  const rpcUrl = import.meta.env.VITE_RPC_URL || 'http://localhost:8545'
+  const effectiveProjectId =
+    projectId || process.env.NEXT_PUBLIC_WC_PROJECT_ID || ''
 
-  if (!projectId) {
-    throw new Error('VITE_WC_PROJECT_ID is missing in your .env')
+  const effectiveRpcUrl =
+    rpcUrl || process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545'
+
+  if (!effectiveProjectId && process.env.NODE_ENV === 'development') {
+    console.warn(
+      '[Cypher SDK] WalletConnect Project ID is missing. Provide it via prop or env.'
+    )
   }
 
-  const wagmiConfig = createCypherConfig({
-    projectId,
-    rpcUrl,
-  })
+  if (!secretKey && process.env.NODE_ENV === 'development') {
+    console.warn('[Cypher SDK] Secret key is missing. Some APIs may fail.')
+  }
+
+  const wagmiConfig = useMemo(() => {
+    return createCypherConfig({
+      projectId: effectiveProjectId,
+      rpcUrl: effectiveRpcUrl,
+    })
+  }, [effectiveProjectId, effectiveRpcUrl])
 
   return (
-    <WagmiProvider config={wagmiConfig} initialState={initialState}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    </WagmiProvider>
+    <SecretKeyContext.Provider value={secretKey}>
+      <WagmiProvider config={wagmiConfig} initialState={initialState}>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      </WagmiProvider>
+    </SecretKeyContext.Provider>
   )
 }

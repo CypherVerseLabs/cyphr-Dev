@@ -1,7 +1,7 @@
 import { createConfig, http } from 'wagmi'
 import { mainnet, sepolia } from 'wagmi/chains'
 import { baseAccount, injected, walletConnect } from 'wagmi/connectors'
-import { cyphChain } from './chains/cyphChain'
+import { cyphChain } from '../sdk/src/chains/cyphChain'
 
 // ✅ Load project ID from env
 const projectId = import.meta.env.VITE_WC_PROJECT_ID

@@ -15,13 +15,13 @@ import {
   useToken,
 } from '@chakra-ui/react'
 
-import Footer from './components/Footer'
-import ModalHeader from './components/ModalHeader'
-import UnauthenticatedContent from './UnauthenticatedContent'
-import AuthenticatedContent from './AuthenticatedContent'
+import Footer from './WalletModal/components/Footer'
+import ModalHeader from './WalletModal/components/ModalHeader'
+import UnauthenticatedContent from './WalletModal/UnauthenticatedContent'
+import AuthenticatedContent from './WalletModal/AuthenticatedContent'
 
 import { useAccount, useDisconnect, useEnsName } from 'wagmi'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../hooks/useAuth'
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 

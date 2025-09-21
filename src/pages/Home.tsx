@@ -224,7 +224,14 @@ export default function Home() {
         <Text color={secondaryTextColor} mb={6}>
           Get the latest Web3 development news and updates.
         </Text>
-        <Button colorScheme="brand" size="lg">
+        
+        <Button
+          colorScheme="brand"
+          size="md"
+          variant="outline"
+          _hover={{ bg: 'brand.50' }}
+          w="fit-content"
+        >
           Start with Cyphr — Get instant access
         </Button>
       </Box>
@@ -275,7 +282,7 @@ function Plan({
     <Box
       p={6}
       bg={popular ? 'gold.600' : 'gray.800'}
-      color={popular ? 'black' : 'whiteAlpha.900'}
+      color={popular ? 'gold' : 'whiteAlpha.900'}
       borderRadius="md"
       shadow={popular ? 'gold' : 'base'}
       textAlign="center"

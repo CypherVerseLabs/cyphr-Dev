@@ -31,7 +31,7 @@ import App from './App'
 import { CypherProvider } from './CypherProvider'
 
 // Chains
-import { cyphChain } from './chains/cyphChain'
+import { cyphChain } from '../sdk/src/chains/cyphChain'
 import { injected, walletConnect, baseAccount } from 'wagmi/connectors'
 
 console.log('ENV:', import.meta.env.VITE_WC_PROJECT_ID);

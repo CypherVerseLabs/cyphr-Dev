@@ -43,7 +43,7 @@
   "sdk/src/pages/PrivateRoute.tsx",
   "sdk/src/pages/Wallets.tsx",
   "sdk/src/pages/account",
-  "sdk/src/pages/teams"
-, "sdk/src/lib/authFetch.ts", "backend/src/routes/contracts.routes.ts", "backend/src/routes/wallets.routes.ts"],
+  "sdk/src/pages/teams",
+   "sdk/src/lib/authFetch.ts", "backend/src/routes/contracts.routes.ts", "backend/src/routes/wallets.routes.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
