@@ -119,5 +119,30 @@ router.get('/me', authenticateJWT, async (req: AuthenticatedRequest, res: Respon
   }
 });
 
+// routes/auth.ts
+
+router.post('/email-login', async (req, res) => {
+  const { email } = req.body
+
+  let user = await prisma.user.findUnique({ where: { email } })
+  if (!user) {
+    user = await prisma.user.create({ data: { email } })
+  }
+
+  const token = jwt.sign(
+    {
+      userId: user.id,
+      address: '',         // optional
+      isAdmin: user.isAdmin,
+    },
+    process.env.JWT_SECRET!,
+    { expiresIn: '7d' }
+  )
+
+  res.json({ token })
+})
+
+
+
 export default router;
 

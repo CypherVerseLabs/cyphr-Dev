@@ -18,11 +18,16 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
   },
+  
   "include": [
   "vite-env.d.ts",
   "src",
+  "src/hooks/useAuth.ts",
   "src/lib",
   "backend/lib/prisma.ts",
   "sdk/components/WalletModal.tsx",
@@ -44,6 +49,8 @@
   "sdk/src/pages/Wallets.tsx",
   "sdk/src/pages/account",
   "sdk/src/pages/teams",
-   "sdk/src/lib/authFetch.ts", "backend/src/routes/contracts.routes.ts", "backend/src/routes/wallets.routes.ts"],
+   "sdk/src/lib/authFetch.ts",
+   "backend/src/routes/contracts.routes.ts",
+   "backend/src/routes/walletsRoutes.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

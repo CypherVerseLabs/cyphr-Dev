@@ -1,8 +1,14 @@
-import { Router, Response, Request } from 'express'
+import { Router, Request, Response } from 'express'
+import { verifyMessage } from 'ethers'
+import { InfuraProvider } from 'ethers';
+
 import prisma from '../lib/prisma'
 import { authenticateJWT, AuthenticatedRequest } from '../middleware/authMiddleware'
 import { body, validationResult } from 'express-validator'
 
+const provider = new InfuraProvider('mainnet', process.env.INFURA_API_KEY);
+
+const challengeStore: Record<string, string> = {}
 const router = Router()
 
 // Custom validator for metadata object
@@ -88,39 +94,108 @@ router.get('/user', authenticateJWT, async (req: AuthenticatedRequest, res: Resp
   }
 })
 
+
+router.post('/verify-challenge', async (req: Request, res: Response) => {
+  const { address } = req.body
+
+  if (!address) return res.status(400).json({ error: 'Address is required' })
+
+  const nonce = Math.floor(100000 + Math.random() * 900000).toString()
+  const message = `Cyph Verification Code: ${nonce}`
+
+  challengeStore[address.toLowerCase()] = message
+
+  res.json({ message })
+})
+
+router.post('/verify', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+  const { address, message, signature } = req.body
+  const userId = req.user?.userId
+
+  if (!address || !message || !signature) {
+    return res.status(400).json({ error: 'Missing fields' })
+  }
+
+  const expected = challengeStore[address.toLowerCase()]
+  if (!expected || expected !== message) {
+    return res.status(400).json({ error: 'Invalid or expired challenge message' })
+  }
+
+  try {
+    const recovered = verifyMessage(message, signature)
+
+
+    if (recovered.toLowerCase() !== address.toLowerCase()) {
+      return res.status(401).json({ error: 'Signature does not match address' })
+    }
+
+    const wallet = await prisma.wallet.findUnique({
+      where: { address: address.toLowerCase() },
+    })
+
+    if (!wallet || wallet.userId !== userId) {
+      return res.status(403).json({ error: 'Wallet not found or not yours' })
+    }
+
+    const updatedWallet = await prisma.wallet.update({
+      where: { address: address.toLowerCase() },
+      data: {
+        metadata: {
+  ...(typeof wallet.metadata === 'object' && wallet.metadata !== null ? wallet.metadata : {}),
+  verified: true,
+  verifiedAt: new Date().toISOString(),
+},
+      },
+    })
+
+    delete challengeStore[address.toLowerCase()]
+    res.json({ success: true, data: updatedWallet })
+  } catch (error) {
+    console.error('Wallet verification error:', error)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+
 /**
  * POST /api/wallets
  * Authenticated route to add a new wallet
  */
+
 router.post(
   '/',
   authenticateJWT,
   [
     body('address').notEmpty().withMessage('Wallet address is required'),
-    body('walletType').optional().isString(),
-    body('label').optional().isString().isLength({ max: 64 }),
-    body('metadata').optional().custom(isValidMetadata),
-    body('chainId').optional().isNumeric(),
+    // other validators...
   ],
   async (req: AuthenticatedRequest, res: Response) => {
-    const errors = validationResult(req)
+    const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() })
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    const userId = req.user?.userId
-    let { address, walletType, label, metadata, chainId } = req.body
+    const userId = req.user?.userId;
+    let { address, walletType, label, metadata, chainId } = req.body;
 
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Unauthorized' })
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
     try {
-      address = address.toLowerCase()
+      address = address.toLowerCase();
 
-      const existingWallet = await prisma.wallet.findUnique({ where: { address } })
+      const existingWallet = await prisma.wallet.findUnique({ where: { address } });
       if (existingWallet) {
-        return res.status(409).json({ success: false, error: 'Wallet already linked' })
+        return res.status(409).json({ success: false, error: 'Wallet already linked' });
+      }
+
+      // ENS lookup (optional)
+      let ensName = null;
+      try {
+        ensName = await provider.lookupAddress(address);
+      } catch (e) {
+        console.warn('ENS lookup failed:', e);
       }
 
       const wallet = await prisma.wallet.create({
@@ -131,16 +206,17 @@ router.post(
           label,
           metadata,
           chainId,
+          ensName,  // Save ENS name if found
         },
-      })
+      });
 
-      res.status(201).json({ success: true, data: wallet })
+      res.status(201).json({ success: true, data: wallet });
     } catch (err) {
-      console.error('POST /wallets error:', err)
-      res.status(500).json({ success: false, error: 'Internal server error' })
+      console.error('POST /wallets error:', err);
+      res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
-)
+);
 
 /**
  * PATCH /api/wallets/:address
@@ -223,5 +299,44 @@ router.delete('/:address', authenticateJWT, async (req: AuthenticatedRequest, re
     res.status(500).json({ success: false, error: 'Internal server error' })
   }
 })
+
+/**
+ * PATCH /api/wallets/:address/refresh-ens
+ * Authenticated route to manually refresh ENS name for a wallet
+ */
+router.patch('/:address/refresh-ens', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user?.userId
+  const addressParam = req.params.address.toLowerCase()
+
+  if (!userId) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+
+  try {
+    const wallet = await prisma.wallet.findUnique({ where: { address: addressParam } })
+
+    if (!wallet || wallet.userId !== userId) {
+      return res.status(404).json({ success: false, error: 'Wallet not found or unauthorized' })
+    }
+
+    let ensName = null
+    try {
+      ensName = await provider.lookupAddress(addressParam)
+    } catch (err) {
+      console.warn(`ENS lookup failed for ${addressParam}:`, err)
+    }
+
+    const updated = await prisma.wallet.update({
+      where: { address: addressParam },
+      data: { ensName },
+    })
+
+    res.json({ success: true, data: updated })
+  } catch (err) {
+    console.error('PATCH /wallets/:address/refresh-ens error:', err)
+    res.status(500).json({ success: false, error: 'Internal server error' })
+  }
+})
+
 
 export default router

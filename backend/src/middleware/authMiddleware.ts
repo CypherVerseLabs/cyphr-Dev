@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-
 interface JwtPayload {
   userId: number;
   address: string;
+  isAdmin?: boolean; // Optional for backward compatibility
 }
 
 export interface AuthenticatedRequest extends Request {
@@ -16,7 +16,8 @@ function isJwtPayload(payload: any): payload is JwtPayload {
     typeof payload === 'object' &&
     payload !== null &&
     typeof payload.userId === 'number' &&
-    typeof payload.address === 'string'
+    typeof payload.address === 'string' &&
+    (typeof payload.isAdmin === 'boolean' || typeof payload.isAdmin === 'undefined')
   );
 }
 

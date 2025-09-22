@@ -19,12 +19,12 @@ export function useAuth() {
     navigate('/home')
   }
 
-  // Auto-refresh token every X minutes
+  // Auto-refresh token every 5 minutes
   useEffect(() => {
     const refreshInterval = setInterval(() => {
       const storedToken = localStorage.getItem('authToken')
       if (storedToken) {
-        // 👇 Replace this with your real refresh logic
+        // Replace this with your real refresh logic
         fetch('http://localhost:5000/api/refresh-token', {
           method: 'POST',
           headers: {

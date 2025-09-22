@@ -8,7 +8,7 @@ export { CypherProvider } from './providers/CypherProvider'
 export * from './components/WalletList'
 export * from './providers/CypherProvider'
 export * from './lib/config'
-export * from './hooks/useAuth'
+export * from '../src/hooks/useAuth'
 export * from './hooks/useUserProfile'
 
 export * from './constants/navLinks'

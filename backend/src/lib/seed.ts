@@ -8,7 +8,7 @@ async function main() {
         email: 'admin@example.com',
         wallets: {
           create: {
-            address: '0xabc1234567890',  // Use a valid wallet address format
+            address: '0xabc1234567890',
             walletType: 'embedded',
           },
         },
