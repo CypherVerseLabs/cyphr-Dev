@@ -1,12 +1,12 @@
 // src/index.ts
 
 // Default export
-export { CypherProvider } from './providers/CypherProvider'
+export { CypherProvider } from './providers/CyphrProvider'
 
 
 // Named exports
 export * from './components/WalletList'
-export * from './providers/CypherProvider'
+export * from './providers/CyphrProvider'
 export * from './lib/config'
 export * from '../src/hooks/useAuth'
 export * from './hooks/useUserProfile'
