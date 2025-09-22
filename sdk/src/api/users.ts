@@ -1,5 +1,5 @@
 // sdk/src/api/users.ts
-import { authFetch } from '../lib/authFetch'
+import { authFetch } from '../../../src/lib/authFetch'
 
 export interface UserProfile {
   id: string

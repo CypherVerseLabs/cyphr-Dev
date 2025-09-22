@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { authFetch } from '../lib/authFetch'
+import { authFetch } from '../../../src/lib/authFetch'
 
 export type WalletType = 'embedded' | 'smart' | 'external'
 

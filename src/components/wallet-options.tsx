@@ -1,5 +1,5 @@
-import WalletManager from '../../sdk/src/components/WalletManager'
-import { WalletList } from '../../sdk/src/components/WalletList'
+import WalletManager from './WalletModal/WalletManager'
+import { WalletList } from './WalletModal/WalletList'
 import { useAccount, useDisconnect } from 'wagmi'
 
 function App() {

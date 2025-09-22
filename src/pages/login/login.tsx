@@ -1,4 +1,4 @@
-import WalletModal from "../../../sdk/src/components/Modal";
+import WalletModal from "../../components/WalletModal/Modal";
 import { useDisclosure } from '@chakra-ui/react'
 
 export default function Login() {

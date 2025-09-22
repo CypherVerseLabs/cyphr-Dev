@@ -34,7 +34,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <CyphrProvider
         projectId={import.meta.env.VITE_WC_PROJECT_ID}
         rpcUrl={import.meta.env.VITE_RPC_URL}
-        secretKey={import.meta.env.VITE_SECRET_KEY} // if using one
+        secretKey={import.meta.env.VITE_CYPHER_SECRET_KEY} // if using one
         initialState={undefined}
       >
         <BrowserRouter>

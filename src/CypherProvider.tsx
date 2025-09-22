@@ -14,6 +14,19 @@ type CypherProviderProps = {
   rpcUrl?: string
 }
 
+// Cache wagmiConfig globally to prevent multiple WalletConnect Core initializations
+let cachedWagmiConfig: ReturnType<typeof createCypherConfig> | null = null
+
+function getWagmiConfig(projectId: string, rpcUrl: string) {
+  if (!cachedWagmiConfig) {
+    cachedWagmiConfig = createCypherConfig({
+      projectId,
+      rpcUrl,
+    })
+  }
+  return cachedWagmiConfig
+}
+
 export function CyphrProvider({
   children,
   initialState,
@@ -29,25 +42,25 @@ export function CyphrProvider({
   const effectiveRpcUrl =
     rpcUrl || import.meta.env.VITE_RPC_URL || 'http://localhost:8545'
 
+  const effectiveSecretKey = secretKey || import.meta.env.VITE_CYPHER_SECRET_KEY || ''
+
   if (!effectiveProjectId && import.meta.env.DEV) {
     console.warn(
       '[Cypher SDK] WalletConnect Project ID is missing. Provide it via prop or env.'
     )
   }
 
-  if (!secretKey && import.meta.env.DEV) {
+  if (!effectiveSecretKey && import.meta.env.DEV) {
     console.warn('[Cypher SDK] Secret key is missing. Some APIs may fail.')
   }
 
+  // Use cached wagmiConfig so WalletConnect Core init happens once
   const wagmiConfig = useMemo(() => {
-    return createCypherConfig({
-      projectId: effectiveProjectId,
-      rpcUrl: effectiveRpcUrl,
-    })
+    return getWagmiConfig(effectiveProjectId, effectiveRpcUrl)
   }, [effectiveProjectId, effectiveRpcUrl])
 
   return (
-    <SecretKeyContext.Provider value={secretKey}>
+    <SecretKeyContext.Provider value={effectiveSecretKey}>
       <WagmiProvider config={wagmiConfig} initialState={initialState}>
         <QueryClientProvider client={queryClient}>
           {children}

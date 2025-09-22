@@ -1,4 +1,4 @@
-import { authFetch } from '../../sdk/src/lib/authFetch'
+import { authFetch } from '../lib/authFetch'
 import {
   getWalletTransactions,
   getNativeBalance as sdkGetNativeBalance,

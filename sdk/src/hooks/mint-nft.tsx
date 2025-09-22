@@ -4,7 +4,7 @@ import {
   useWaitForTransactionReceipt, 
   useWriteContract 
 } from 'wagmi'
-import { abi } from '../../../src/components/abi'
+import { abi } from '../../../src/lib/abi'
 
  
 export function MintNFT() {
