@@ -266,7 +266,7 @@ export default function AccountWallets() {
                 {wallets.map((wallet) => (
                   <Box key={wallet.address} p={3} borderWidth="1px" borderRadius="md" w="100%">
                     <Text fontFamily="monospace" fontWeight="bold">
-                      {wallet.address}
+                      {wallet.walletAddress}
                     </Text>
                     <Text fontSize="sm" color="gray.600">
                       Type: {wallet.walletType}
@@ -296,8 +296,8 @@ export default function AccountWallets() {
                       mt={3}
                       size="sm"
                       colorScheme="red"
-                      onClick={() => deleteWallet(wallet.address)}
-                    >
+                      onClick={() => deleteWallet(wallet.walletAddress)}
+                      >
                       Delete
                     </Button>
                   </Box>

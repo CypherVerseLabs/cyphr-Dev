@@ -270,7 +270,7 @@ export default function AccountWallets() {
                     w="100%"
                   >
                     <Text fontFamily="monospace" fontWeight="bold">
-                      {wallet.address}
+                    {wallet.walletAddress}
                     </Text>
                     <Text fontSize="sm" color="gray.600">
                       Type: {wallet.walletType}
@@ -300,7 +300,7 @@ export default function AccountWallets() {
                       mt={3}
                       size="sm"
                       colorScheme="red"
-                      onClick={() => deleteWallet(wallet.address)}
+                      onClick={() => deleteWallet(wallet.walletAddress)}
                     >
                       Delete
                     </Button>

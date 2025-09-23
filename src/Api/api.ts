@@ -5,6 +5,7 @@ import {
   getTokenBalances as sdkGetTokenBalances,
   getWalletNFTs as sdkGetWalletNFTs,
 } from '../../sdk/src/api/wallets'
+import { Key } from 'react'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
@@ -24,6 +25,11 @@ export interface CreateUserWalletResponse {
 }
 
 export interface Wallet {
+  balance: any
+  address: Key | null | undefined
+  label: any
+  chainId: any
+  metadata: any
   id: string
   walletAddress: string
   walletType: WalletType
@@ -217,6 +223,16 @@ export async function fetchWallets(
   }).toString()
 
   return apiFetch<FetchWalletsResponse>(`/wallets/user?${query}`, { method: 'GET' })
+}
+
+/**
+ * Update a wallet by ID.
+ */
+export async function updateWallet(walletId: string, updates: Partial<Wallet>): Promise<Wallet> {
+  return apiFetch<Wallet>(`/wallets/${walletId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  })
 }
 
 /**

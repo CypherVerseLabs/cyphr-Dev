@@ -10,7 +10,7 @@ import {
 import { custom } from 'viem' // ✅ This is the correct helper
 import { mainnet, sepolia } from 'wagmi/chains'
 import { cyphChain } from '../../sdk/src/chains/cyphChain'
-import { customRpc } from '../../sdk/src/rpc' // Your customRpc from earlier
+import { CypherNode } from '../../sdk/src/rpc/cypherNode' // Your customRpc from earlier
 
 export const config = createConfig({
   chains: [mainnet, sepolia, cyphChain],
@@ -28,7 +28,7 @@ export const config = createConfig({
     // ✅ Use `viem`'s custom() helper to wrap your RPC
     [cyphChain.id]: custom({
       request: ({ method, params }) =>
-        customRpc.request({ method, params }),
+        CypherNode.request({ method, params }),
     }),
   },
 })

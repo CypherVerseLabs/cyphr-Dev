@@ -1,17 +1,13 @@
+// src/hooks/useWallets.ts
+
 import { useEffect, useState, useCallback } from 'react'
-import { authFetch } from '../../../src/lib/authFetch'
-
-export type WalletType = 'embedded' | 'smart' | 'external'
-
-export interface Wallet {
-  [x: string]: any
-  id: string
-  walletAddress: string
-  walletType: WalletType
-  userEmail: string
-  createdAt: string
-  metadata?: any
-}
+import {
+  fetchWallets as fetchWalletsAPI,
+  createUserWallet,
+  updateWallet as updateWalletAPI,
+  deleteWallet as deleteWalletAPI,
+  Wallet,
+} from '../../../src/Api/api'
 
 export function useWallets() {
   const [wallets, setWallets] = useState<Wallet[]>([])
@@ -21,51 +17,35 @@ export function useWallets() {
   const fetchWallets = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await authFetch('/api/wallets/user', { method: 'GET' })
-      if (!res.ok) throw new Error('Failed to fetch wallets')
-      const data = await res.json()
-      setWallets(data.wallets || [])
+      const { wallets } = await fetchWalletsAPI()
+      setWallets(wallets)
       setError(null)
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch wallets')
       console.error(err)
+      setError(err.message || 'Failed to fetch wallets')
     } finally {
       setLoading(false)
     }
   }, [])
 
   const addWallet = useCallback(async (wallet: Partial<Wallet>) => {
-    const res = await authFetch('/api/wallets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(wallet),
-    })
-    if (!res.ok) throw new Error('Failed to add wallet')
-    const newWallet = await res.json()
-    setWallets((prev) => [...prev, newWallet])
+    const { userEmail, walletAddress, walletType } = wallet
+    if (!userEmail || !walletAddress || !walletType)
+      throw new Error('Missing required wallet fields')
+
+    const result = await createUserWallet(userEmail, walletAddress, walletType)
+    setWallets((prev) => [...prev, { ...wallet, ...result } as Wallet])
   }, [])
 
-  const updateWallet = useCallback(
-    async (walletId: string, updates: Partial<Wallet>) => {
-      const res = await authFetch(`/api/wallets/${walletId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      })
-      if (!res.ok) throw new Error('Failed to update wallet')
-      const updated = await res.json()
-      setWallets((prev) =>
-        prev.map((w) => (w.id === walletId ? updated : w))
-      )
-    },
-    []
-  )
+  const updateWallet = useCallback(async (walletId: string, updates: Partial<Wallet>) => {
+    const updated = await updateWalletAPI(walletId, updates)
+    setWallets((prev) =>
+      prev.map((w) => (w.id === walletId ? updated : w))
+    )
+  }, [])
 
   const deleteWallet = useCallback(async (walletId: string) => {
-    const res = await authFetch(`/api/wallets/${walletId}`, {
-      method: 'DELETE',
-    })
-    if (!res.ok) throw new Error('Failed to delete wallet')
+    await deleteWalletAPI(walletId)
     setWallets((prev) => prev.filter((w) => w.id !== walletId))
   }, [])
 

@@ -2,7 +2,7 @@ import { Chain } from 'viem/chains'
 
 const LOCAL_RPC = process.env.NEXT_PUBLIC_CYPH_RPC_URL || 'http://192.168.1.79:8545'
 
-export const cyphChain: Chain = {
+export const cyphTestChain: Chain = {
   id: 515051,
   name: 'CYPH Local Chain',
   nativeCurrency: {

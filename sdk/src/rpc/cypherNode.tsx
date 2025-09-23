@@ -5,7 +5,7 @@ const RPC_URL = 'http://192.168.1.79:8545'
 // Utility: sleep for retry delay
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
 
-export const customRpc = {
+export const CypherNode = {
   async request({ method, params }: { method: string; params?: unknown[] }, retryCount = 2): Promise<any> {
     const requestBody = {
       jsonrpc: '2.0',
