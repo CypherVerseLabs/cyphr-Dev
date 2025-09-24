@@ -17,11 +17,11 @@ import {
   
 } from '@chakra-ui/react'
 import { HamburgerIcon } from '@chakra-ui/icons'
-import DarkModeToggle from './DarkModeToggle'
+import DarkModeToggle from '../DarkModeToggle'
 import { NavLink, Outlet } from 'react-router-dom'
-import logo1 from '../../public/logo1.png'
+import logo1 from '../../../public/logo1.png'
 import { Link as RouterLink } from 'react-router-dom'
-import WalletModal from './WalletModal/Modal'
+import WalletModal from '../WalletModal/ConnectButton'
 
 
 const navLinks = [
@@ -35,7 +35,7 @@ const navLinks = [
 
 // Keyframes for floating and pulsing animation
 
-export default function Layout() {
+export default function MainLayout() {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const bg = useColorModeValue('gray.100', 'gray.900')
   const textColor = useColorModeValue('gray.800', '#FFD700')

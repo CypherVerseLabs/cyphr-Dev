@@ -1,7 +1,8 @@
-import WalletModal from "../../components/WalletModal/ConnectButton";
+
+import WalletModal from "../../../components/WalletModal/ConnectButton";
 import { useDisclosure } from '@chakra-ui/react'
 
-export default function Login() {
+export default function plwallets() {
   const { onClose } = useDisclosure()
 
   return (
@@ -12,5 +13,3 @@ export default function Login() {
     />
   )
 }
-
-

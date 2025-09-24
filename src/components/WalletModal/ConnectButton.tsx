@@ -48,7 +48,7 @@ export interface WalletModalProps {
 const shortenAddress = (addr?: string) =>
   addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : ''
 
-export default function WalletModal({
+export default function ConnectButton({
   rpcUrl = 'http://localhost:8545',
   chainId = 5150,
   onlyWallets = false,

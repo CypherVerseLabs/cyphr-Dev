@@ -1,5 +1,4 @@
 import { Routes, Route } from 'react-router-dom'
-import Layout from './components/Layout'
 import Dashboard from './pages/account/Dashboard'
 import Home from './pages/Home'
 import PrivateRoute from './pages/PrivateRoute'
@@ -18,11 +17,21 @@ import Resources from './pages/resources'
 import DevTools from './pages/devTools'
 import SDKs from './pages/sdks'
 import Login from './pages/login/login'
+import MainLayout from './components/Layouts/MainLayout'
+
+import PlaygroundLayout from './pages/playground/components/PlayLayout'
+import Wallets from './pages/playground/play/plWallets'
+import PlayMain from './pages/playground/play/playMain'
+
+
+
+
+
 
 export default function App() {
   return (
     <Routes>
-      <Route element={<Layout />}>
+      <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
         <Route path="/solutions" element={<Solutions />} />
@@ -30,9 +39,15 @@ export default function App() {
         <Route path="/resources" element={<Resources />} />
         <Route path="/devTools" element={<DevTools />} />
         <Route path="/sdks" element={<SDKs />} />
-        <Route path="/login" element={<Login />} />
-
+        
         {/* ✅ Authenticated Account Routes */}
+        
+        {/* 🔑 Auth route with AuthLayout (optional: no header or different one) */}
+      
+        <Route path="/login" element={<Login />} />
+      
+
+      {/* 🔒 Protected /account/* routes using PrivateRoute and AccountLayout */}
         <Route
           path="/account/*"
           element={
@@ -50,6 +65,11 @@ export default function App() {
         </Route>
       </Route>
 
+      {/* 🧪 Playground Routes */}
+      <Route path="/playground" element={<PlaygroundLayout />}>
+  <Route index element={<PlayMain />} />           // shows at /playground
+  <Route path="wallets" element={<Wallets />} />     // shows at /playground/wallets
+</Route>
       {/* 404 fallback */}
       <Route path="*" element={<div>404 Not Found</div>} />
     </Routes>

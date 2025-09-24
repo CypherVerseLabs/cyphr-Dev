@@ -1,7 +1,7 @@
 // WalletModal/index.tsx
 
 // Local files (default exports)
-export { default as WalletModal } from '../Modal'
+export { default as WalletModal } from '../ConnectButton'
 export { default as ModalHeader } from './components/ModalHeader'
 export { default as LoginOptions } from './cards/LoginOptionsMenu'
 export { default as ConnectedUserMenu } from './cards/ConnectedUserMenu'

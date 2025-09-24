@@ -11,6 +11,8 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 
+import { Link as RouterLink } from 'react-router-dom'
+
 export default function Home() {
   // Adaptive text colors based on color mode
   const bodyTextColor = useColorModeValue('gray.700', 'whiteAlpha.800')
@@ -21,17 +23,22 @@ export default function Home() {
       {/* Trusted By Section */}
       <VStack spacing={4} textAlign="center" mb={16}>
         <Heading size="lg" fontWeight="extrabold" color="brand.700">
-          Trusted by the best teams
+          🔥 The Full Power of Cyphr — One API. Infinite Possibilities.
         </Heading>
+        
         <Button
-          colorScheme="brand"
-          size="md"
-          variant="outline"
-          _hover={{ bg: 'brand.50' }}
-          w="fit-content"
-        >
-          See Cyphr in action
-        </Button>
+  as={RouterLink}
+  to="/playground"
+  colorScheme="brand"
+  size="md"
+  variant="outline"
+  _hover={{ bg: 'brand.50' }}
+  w="fit-content"
+>
+  See Cyphr in action
+</Button>
+
+      
       </VStack>
 
       {/* Build Section */}

@@ -1,6 +1,5 @@
-// src/Api/wallets.ts
-
-import { authFetch } from "../../../src/lib/authFetch"
+// sdk/src/api/wallets.ts
+import { authFetch } from '../lib/authFetch'
 
 // ✅ Fetch wallet transactions
 export async function getWalletTransactions(address: string) {

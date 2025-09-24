@@ -40,7 +40,7 @@
   "sdk/lib/config.ts",
   "sdk/providers/theme.ts",
   "src/components/WalletModal/WalletManager.tsx",
-  "src/components/Layout.tsx",
+  "src/components/Layouts/MainLayout.tsx",
   "src/pages/account/Dashboard.tsx",
   "src/pages/docs.tsx",
   "src/pages/Home.tsx",
@@ -49,8 +49,8 @@
   "src/pages/Wallets.tsx",
   "src/pages/account",
   "src/pages/teams",
-   "src/lib/authFetch.ts",
+   "sdk/src/lib/authFetch.ts",
    "backend/src/routes/contracts.routes.ts",
-   "backend/src/routes/walletsRoutes.ts"],
+   "backend/src/routes/walletsRoutes.ts", "sdk/src/lib/createCyphrClient.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

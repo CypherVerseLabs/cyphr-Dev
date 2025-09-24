@@ -12,4 +12,5 @@ export * from './providers/'
 export * from './rpc/'
 export * from './utils/'
 export * from './types/'
-
+export * from './lib/createCyphrClient'
+export * from './contexts/CyphrContext'

@@ -22,6 +22,6 @@
     // ✅ Add this line:
     "resolveJsonModule": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "../src/pages/Home.tsx", "../src/pages/login/login.tsx", "../src/pages/docs.tsx", "../src/components/Layout.tsx", "../src/components/DarkModeToggle.tsx", "../src/components/WalletModal/Modal.tsx", "../src/components/WalletModal/WalletList.tsx", "../src/components/WalletModal/WalletManager.tsx", "../src/lib/wallets.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "../src/pages/Home.tsx", "../src/pages/login/login.tsx", "../src/pages/docs.tsx", "../src/components/Layouts/MainLayout.tsx", "../src/components/DarkModeToggle.tsx", "../src/components/WalletModal/ConnectButton.tsx", "../src/components/WalletModal/WalletList.tsx", "../src/components/WalletModal/WalletManager.tsx", "../src/lib/wallets.ts", "../src/Api/walletBalance.ts"],
   "exclude": ["dist", "node_modules"]
 }
