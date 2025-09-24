@@ -20,7 +20,7 @@ import {
 import { Link } from 'react-router-dom'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { useWallets } from '../../../sdk/src/hooks/useWallets'
-import { fetchUserProfile } from '../../../sdk/src/api'
+import { fetchUserProfile } from '../../../sdk/src/api/users'
 
 export default function AccountWallets() {
   const { address, isConnected } = useAccount()

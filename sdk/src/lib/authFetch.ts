@@ -1,10 +1,18 @@
-// src/lib/authFetch.ts
+let clientId: string | undefined
+
+export function setClientId(id: string | undefined) {
+  clientId = id
+}
+
 export async function authFetch(input: RequestInfo, init: RequestInit = {}) {
   const token = localStorage.getItem('authToken')
 
   const headers = new Headers(init.headers || {})
   if (token) {
     headers.set('Authorization', `Bearer ${token}`)
+  }
+  if (clientId) {
+    headers.set('X-Client-Id', clientId)
   }
   headers.set('Content-Type', 'application/json')
 

@@ -1,5 +1,5 @@
 {
-  "name": "@cyph/sdk",
+  "name": "@cyphr/sdk",
   "version": "1.0.0",
   "main": "dist/index.cjs.js",
   "keywords": ["web3", "wallet", "react", "chakra-ui", "wagmi", "sdk", "cyph"],

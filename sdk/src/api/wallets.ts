@@ -1,22 +1,23 @@
-// sdk/src/api/wallets.ts
-import { authFetch } from '../lib/authFetch'
+// src/api/wallets.ts
 
-// ✅ Fetch wallet transactions
+import { authFetch, setClientId as setWalletClientId } from '../lib/authFetch'
+
+export function setClientId(id: string | undefined) {
+  setWalletClientId(id)
+}
+
 export async function getWalletTransactions(address: string) {
   return authFetch(`/wallets/${address}/transactions`)
 }
 
-// ✅ Fetch native token balance (ETH, MATIC, etc.)
 export async function getNativeBalance(address: string) {
   return authFetch(`/native/${address}`)
 }
 
-// ✅ Fetch ERC-20 token balances
 export async function getTokenBalances(address: string) {
   return authFetch(`/tokens/${address}`)
 }
 
-// ✅ Fetch NFTs (ERC-721 and ERC-1155)
 export async function getWalletNFTs(address: string) {
   return authFetch(`/nfts/${address}`)
 }

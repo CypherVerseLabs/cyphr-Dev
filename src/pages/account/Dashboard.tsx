@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react'
 import { Link } from 'react-router-dom'
 import { useWallets } from '../../../sdk/src/hooks/useWallets'
-import { fetchUserProfile, UserProfile } from '../../../sdk/src/api'
+import { fetchUserProfile, UserProfile } from '../../../sdk/src/api/users'
 
 function formatBalance(balance: number | string | undefined) {
   if (balance == null) return '-'

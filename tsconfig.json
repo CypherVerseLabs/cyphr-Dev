@@ -51,6 +51,6 @@
   "src/pages/teams",
    "sdk/src/lib/authFetch.ts",
    "backend/src/routes/contracts.routes.ts",
-   "backend/src/routes/walletsRoutes.ts", "sdk/src/lib/createCyphrClient.ts"],
+   "backend/src/routes/walletsRoutes.ts", "sdk/src/lib/createCyphrClient.ts", "sdk/src/utils/clientId.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

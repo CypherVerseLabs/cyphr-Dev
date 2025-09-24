@@ -5,7 +5,7 @@ import PrivateRoute from './pages/PrivateRoute'
 
 import AccountLayout from './pages/account/AccountLayout'
 import AccountOverview from './pages/account/AccountOverview'
-import AccountSettings from './pages/account/AccountSettings'
+import AccountSettings from './pages/account/AccountSettings/AccountSettings'
 import AccountWallets from './pages/account/AccountWallets'
 import AccountDevices from './pages/account/AccountDevices'
 import NFTs from './pages/account/NFTs'

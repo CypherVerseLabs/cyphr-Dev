@@ -1,2 +1,4 @@
 export * from './wallets'
-export * from './users'
+
+export { fetchUserProfile } from './users'
+export type { UserProfile } from './users'
