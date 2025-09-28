@@ -6,27 +6,37 @@ import {
   Button,
   Stack,
   Text,
+  useColorModeValue,
 } from '@chakra-ui/react'
-import { useConnect, useAccount, useDisconnect } from 'wagmi'
+import { useConnect, useAccount, useDisconnect, Connector } from 'wagmi'
 import { useAuth } from '../../../sdk/src/hooks/useAuth'
-import WalletOption from './WalletList/WalletOption'
+import WalletOption from '../WalletApps'
 
 export interface WalletListProps {
   rpcUrl?: string
   chainId?: number
   onSelect?: () => void
   onDisconnect?: () => void
+  onError?: (error: Error) => void
+  onConnectingChange?: (isConnecting: boolean) => void
   className?: string
   style?: React.CSSProperties
+  maxProviders?: number
+
+  // New prop for recommended wallet connector IDs
+  recommendedWallets?: string[]
 }
 
 export const WalletList: React.FC<WalletListProps> = ({
-  rpcUrl,
   chainId,
   onSelect,
   onDisconnect,
+  onError,
+  onConnectingChange,
   className = '',
   style,
+  maxProviders,
+  recommendedWallets = [],
 }) => {
   const { connectors, connect, error } = useConnect()
   const { isConnected } = useAccount()
@@ -35,10 +45,24 @@ export const WalletList: React.FC<WalletListProps> = ({
 
   const [connectingId, setConnectingId] = useState<string | null>(null)
 
-  const injectedConnector = connectors.find((c) => c.id === 'injected')
-  const effectiveRpcUrl = rpcUrl ?? 'http://localhost:8545'
-  const effectiveChainId = chainId ?? 5150
+  // Filter recommended connectors
+  const recommendedConnectors = connectors.filter(c =>
+    recommendedWallets.includes(c.id)
+  )
+
+  // The rest of connectors excluding recommended
+  const otherConnectors = connectors.filter(
+    c => !recommendedWallets.includes(c.id)
+  )
+
+  const displayedOtherConnectors = maxProviders
+    ? otherConnectors.slice(0, maxProviders)
+    : otherConnectors
+
   const isConnecting = connectingId !== null
+
+  const disconnectBtnBg = useColorModeValue('red.50', 'red.900')
+  const disconnectBtnText = useColorModeValue('red.600', 'red.300')
 
   const handleDisconnect = () => {
     disconnect()
@@ -46,122 +70,98 @@ export const WalletList: React.FC<WalletListProps> = ({
     onDisconnect?.()
   }
 
-  const switchToTargetChain = async () => {
-    const targetHexChain = `0x${Number(effectiveChainId).toString(16)}`
+  const handleConnect = (connector: Connector, customId?: string) => async () => {
+    const id = customId ?? connector.id
+    setConnectingId(id)
+    onConnectingChange?.(true)
+
     try {
-      await window.ethereum?.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: targetHexChain }],
-      })
-    } catch (switchError: any) {
-      if (switchError.code === 4902) {
-        await window.ethereum?.request({
-          method: 'wallet_addEthereumChain',
-          params: [
-            {
-              chainId: targetHexChain,
-              chainName: 'CYPH Local Chain',
-              nativeCurrency: {
-                name: 'Cypher',
-                symbol: 'CYPH',
-                decimals: 18,
-              },
-              rpcUrls: [effectiveRpcUrl],
-              blockExplorerUrls: [],
-            },
-          ],
-        })
+      if (chainId && connector.id !== 'injected') {
+        await connect({ connector, chainId })
       } else {
-        throw switchError
+        await connect({ connector })
       }
-    }
-  }
-
-  const validateAndSwitchChain = async () => {
-    const chainIdHex = await window.ethereum?.request({ method: 'eth_chainId' })
-    const currentChainId = parseInt(chainIdHex, 16)
-
-    if (currentChainId !== effectiveChainId) {
-      await switchToTargetChain()
-    }
-  }
-
-  const handleCyphWalletConnect = async () => {
-    if (typeof window === 'undefined' || !window.ethereum) {
-      console.warn('No Ethereum provider found')
-      return
-    }
-
-    try {
-      await validateAndSwitchChain()
-
-      setConnectingId('cyph-wallet')
-      await connect({ connector: injectedConnector!, chainId: effectiveChainId })
       onSelect?.()
     } catch (err) {
-      console.error('🔌 Failed to connect to Cyph Wallet:', err)
+      console.error(`[WalletList] Failed to connect: ${connector.name}`, err)
+      if (err instanceof Error) onError?.(err)
     } finally {
       setConnectingId(null)
+      onConnectingChange?.(false)
     }
   }
 
   return (
-    <Box className={className} style={style}>
+    <Box className={className} style={style} aria-busy={isConnecting}>
       {isConnected ? (
         <Button
           onClick={handleDisconnect}
-          colorScheme="red"
+          bg={disconnectBtnBg}
+          color={disconnectBtnText}
           variant="outline"
           width="100%"
+          _hover={{ bg: 'red.100' }}
+          fontWeight="medium"
+          data-testid="disconnect-wallet-button"
+          aria-label="Disconnect Wallet"
         >
           🔌 Disconnect Wallet
         </Button>
       ) : (
-        <Stack spacing={3}>
-          {connectors
-            .filter((c) => c.id !== 'injected')
-            .map((connector) => (
+        <>
+          {recommendedConnectors.length > 0 && (
+            <>
+              <Text fontWeight="bold" mb={2}>
+                Recommended Wallets
+              </Text>
+              <Stack spacing={3} mb={6}>
+                {recommendedConnectors.map((connector) => (
+                  <WalletOption
+                    key={connector.id}
+                    connector={connector}
+                    onClick={handleConnect(connector)}
+                    isLoading={connectingId === connector.id}
+                    disabled={isConnecting}
+                  />
+                ))}
+              </Stack>
+            </>
+          )}
+
+          
+          <Stack spacing={3}>
+            {displayedOtherConnectors.map((connector) => (
               <WalletOption
-                key={connector.id ?? connector.name}
+                key={connector.id}
                 connector={connector}
-                onClick={async () => {
-                  setConnectingId(connector.id)
-                  try {
-                    await connect({ connector })
-
-                    await validateAndSwitchChain()
-
-                    onSelect?.()
-                  } catch (err) {
-                    console.error(`❌ Failed to connect: ${connector.name}`, err)
-                  } finally {
-                    setConnectingId(null)
-                  }
-                }}
+                onClick={handleConnect(connector)}
                 isLoading={connectingId === connector.id}
                 disabled={isConnecting}
               />
             ))}
+          </Stack>
 
-          {injectedConnector && (
-            <WalletOption
-              key="cyph-wallet"
-              connector={injectedConnector}
-              iconId="cyph"
-              name="Cyph Wallet"
-              onClick={handleCyphWalletConnect}
-              isLoading={connectingId === 'cyph-wallet'}
-              disabled={isConnecting}
-            />
+          {connectors.length === 0 && (
+            <Text fontSize="sm" color="gray.500">
+              No wallet connectors available.
+            </Text>
           )}
-        </Stack>
+        </>
       )}
 
       {error && (
-        <Text fontSize="sm" color="red.500" mt={2}>
+        <Text
+          fontSize="sm"
+          color="red.500"
+          mt={2}
+          aria-live="polite"
+          role="alert"
+        >
           ⚠️ {error.message}
         </Text>
       )}
     </Box>
   )
 }
+
+export default WalletList

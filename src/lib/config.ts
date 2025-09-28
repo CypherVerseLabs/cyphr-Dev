@@ -1,16 +1,26 @@
-import { createConfig, http, cookieStorage, createStorage } from 'wagmi'
-import { mainnet, sepolia } from 'wagmi/chains'
-import { cyphChain } from '../../sdk/src/chains/cyphChain'
+import { Chain } from 'viem'
 
-export const config = createConfig({
-  chains: [mainnet, sepolia, cyphChain],  // <-- add your custom chain here
-  ssr: true,
-  storage: createStorage({
-    storage: cookieStorage,
-  }),
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [cyphChain.id]: http('http://192.168.1.79:8545'),   // <-- add transport for your custom chain here
+export const cyphChain: Chain = {
+  id: 5150,
+  name: 'CyphNode',
+  nativeCurrency: {
+    name: 'CYPH',
+    symbol: 'CYPH',
+    decimals: 18,
   },
-})
+  rpcUrls: {
+    default: {
+      http: ['http://192.168.1.79:8545'],
+    },
+    public: {
+      http: ['http://192.168.1.79:8545'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Cyph Explorer',
+      url: 'http://192.168.1.79:8545',
+    },
+  },
+  testnet: false,
+}

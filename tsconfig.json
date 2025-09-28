@@ -39,7 +39,7 @@
   "sdk/components/DarkModeToggle.tsx",
   "sdk/lib/config.ts",
   "sdk/providers/theme.ts",
-  "src/components/WalletModal/WalletManager.tsx",
+  "src/pages/WalletManager.tsx",
   "src/components/Layouts/MainLayout.tsx",
   "src/pages/account/Dashboard.tsx",
   "src/pages/docs.tsx",

@@ -31,6 +31,10 @@ import PlayMain from './pages/playground/play/playMain'
 export default function App() {
   return (
     <Routes>
+
+        {/* 🔓 Public Routes */}
+      <Route path="/login" element={<Login />} />
+
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
@@ -42,10 +46,7 @@ export default function App() {
         
         {/* ✅ Authenticated Account Routes */}
         
-        {/* 🔑 Auth route with AuthLayout (optional: no header or different one) */}
-      
-        <Route path="/login" element={<Login />} />
-      
+        {/* 🔑 Auth route with AuthLayout (optional: no header or different one) */}  
 
       {/* 🔒 Protected /account/* routes using PrivateRoute and AccountLayout */}
         <Route

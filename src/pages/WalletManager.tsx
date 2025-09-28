@@ -12,9 +12,9 @@ import {
   fetchWallets,
   deleteWallet,
   WalletType,
-} from '../../Api/api'
+} from '../Api/api'
 
-import { useAuth } from '../../../sdk/src/hooks/useAuth'
+import { useAuth } from '../../sdk/src/hooks/useAuth'
 import { useToast } from '@chakra-ui/react'
 
 // 🧾 Mutation input type

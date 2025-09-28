@@ -1,5 +1,6 @@
 'use client'
 
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Modal,
   ModalOverlay,
@@ -13,6 +14,7 @@ import {
   useColorMode,
   useColorModeValue,
   useToken,
+  useToast,
 } from '@chakra-ui/react'
 
 import Footer from './WalletModal/components/Footer'
@@ -20,10 +22,11 @@ import ModalHeader from './WalletModal/components/ModalHeader'
 import UnauthenticatedContent from './WalletModal/UnauthenticatedContent'
 import AuthenticatedContent from './WalletModal/AuthenticatedContent'
 
+import { IconType } from 'react-icons'
+import { FaWallet, FaCog } from 'react-icons/fa'
 import { useAccount, useDisconnect, useEnsName } from 'wagmi'
-import { useAuth } from '../../../sdk/src/hooks/useAuth'
-import { useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useAuth } from '../../sdk/src/hooks/useAuth'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 export interface WalletModalProps {
   rpcUrl?: string
@@ -33,16 +36,24 @@ export interface WalletModalProps {
   onLogout?: () => void
   themeOverride?: 'light' | 'dark'
   buttonText?: string
-  navLinks?: { label: string; href: string }[]
+  navLinks?: { label: string; href: string; icon?: IconType }[]
   logo?: string | React.ReactNode
   modalSize?: ModalProps['size']
   modalProps?: Partial<Omit<ModalProps, 'isOpen' | 'onClose'>>
   themeColor?: string
 
-  // New props for controlled mode and hiding button
-  forceOpen?: boolean             // control modal open state externally
-  onForceClose?: () => void       // external callback for closing modal
-  hideButton?: boolean            // hide the connect button when true
+  // Controlled mode and hiding button
+  forceOpen?: boolean
+  onForceClose?: () => void
+  hideButton?: boolean
+
+  // Logout redirect path
+  logoutRedirectPath?: string
+
+  // 🎨 New customization props
+  backgroundColor?: string
+  textColor?: string
+  fontFamily?: string
 }
 
 const shortenAddress = (addr?: string) =>
@@ -57,9 +68,9 @@ export default function ConnectButton({
   themeOverride,
   buttonText = 'Connect Wallet',
   navLinks = [
-    { label: 'My Account', href: '/account' },
-    { label: 'My Wallets', href: '/account/wallets' },
-    { label: 'Settings', href: '/account/settings' },
+    { label: 'My Wallets', href: '/wallets', icon: FaWallet },
+    { label: 'Settings', href: '/settings', icon: FaCog },
+    { label: 'Account Settings', href: '/account/settings' },
     { label: 'Devices', href: '/account/devices' },
   ],
   logo,
@@ -69,12 +80,19 @@ export default function ConnectButton({
   forceOpen,
   onForceClose,
   hideButton = false,
+  logoutRedirectPath = '/login',
+
+  // 🆕 New customization props
+  backgroundColor,
+  textColor,
+  fontFamily,
 }: WalletModalProps) {
-  // Use internal disclosure unless controlled externally
   const internalDisclosure = useDisclosure()
+  const toast = useToast()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const isControlled = typeof forceOpen === 'boolean'
-
   const isOpen = isControlled ? forceOpen : internalDisclosure.isOpen
   const onOpen = isControlled ? () => {} : internalDisclosure.onOpen
   const onClose = isControlled ? (onForceClose || (() => {})) : internalDisclosure.onClose
@@ -83,27 +101,56 @@ export default function ConnectButton({
   const { disconnect } = useDisconnect()
   const { clearToken, token } = useAuth()
   const { data: ensName } = useEnsName({ address })
-  const location = useLocation()
+
   const { colorMode } = useColorMode()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const [bg500, bg600, bg400] = useToken('colors', [
-    themeColor,
-    themeColor.replace('.500', '.600'),
-    themeColor.replace('.500', '.400'),
-  ])
+  const [bg500, bg600, bg400] = useToken(
+    'colors',
+    useMemo(
+      () => [
+        themeColor,
+        themeColor.replace('.500', '.600'),
+        themeColor.replace('.500', '.400'),
+      ],
+      [themeColor]
+    )
+  )
 
-  const buttonBg = bg500 || themeColor
+  const buttonBg = backgroundColor || bg500 || themeColor
   const buttonHoverBg = bg600 || bg400 || themeColor
-  const buttonTextColor = useColorModeValue('black', '#FFD700')
+  const buttonTextColor = textColor || useColorModeValue('black', '#FFD700')
+  const appliedFontFamily = fontFamily || 'inherit'
+
   const gold = '#FFD700'
   const isDark = themeOverride === 'dark' || (!themeOverride && colorMode === 'dark')
   const displayName = ensName ?? shortenAddress(address)
 
-  const handleLogout = () => {
-    disconnect()
-    clearToken()
-    onClose()
-    onLogout?.()
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true)
+      await disconnect?.()
+      clearToken()
+      onClose()
+      onLogout?.()
+      navigate(logoutRedirectPath)
+      toast({
+        title: 'Logged out',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (error) {
+      toast({
+        title: 'Logout failed',
+        description: (error as Error).message || 'Please try again',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      })
+    } finally {
+      setIsLoggingOut(false)
+    }
   }
 
   useEffect(() => {
@@ -114,7 +161,6 @@ export default function ConnectButton({
 
   return (
     <>
-      {/* Only render the button if hideButton is false */}
       {!hideButton && (
         <Button
           onClick={onOpen}
@@ -126,8 +172,11 @@ export default function ConnectButton({
           px={4}
           py={2}
           fontSize="sm"
+          fontFamily={appliedFontFamily}
+          aria-label={isConnected ? `Wallet connected: ${displayName}` : 'Connect wallet'}
+          isLoading={isLoggingOut}
         >
-          {isConnected ? 'Connected' : buttonText}
+          {isConnected ? displayName : buttonText}
         </Button>
       )}
 
@@ -137,12 +186,14 @@ export default function ConnectButton({
         isCentered
         size={modalSize}
         {...modalProps}
+        motionPreset="slideInBottom"
       >
         <ModalOverlay />
         <ModalContent
           p={6}
           bg={isDark ? 'black' : 'white'}
           color={isDark ? gold : 'black'}
+          fontFamily={appliedFontFamily} // 🆕 Apply font to modal
           aria-labelledby="wallet-modal-title"
         >
           <ModalHeader displayName={displayName} logo={logo} isDark={isDark} />

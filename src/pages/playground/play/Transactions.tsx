@@ -1,5 +1,5 @@
 
-import WalletModal from "../../../components/WalletModal/ConnectButton";
+import WalletModal from "../../../components/ConnectButton";
 import { useDisclosure } from '@chakra-ui/react'
 
 export default function plTransactions() {

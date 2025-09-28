@@ -8,7 +8,10 @@ import {
 
 interface SocialLoginButtonProps {
   provider: 'google' | 'twitter' | 'discord' | 'instagram'
-  onClick?: () => void
+  onError?: (message: string) => void
+  onSuccess?: (provider: string) => void
+  onStart?: () => void
+  onFinish?: () => void
 }
 
 const iconMap = {
@@ -18,10 +21,33 @@ const iconMap = {
   instagram: FaInstagram,
 }
 
-export function SocialLoginButton({ provider, onClick }: SocialLoginButtonProps) {
+export function SocialLoginButton({
+  provider,
+  onError,
+  onSuccess,
+  onStart,
+  onFinish,
+}: SocialLoginButtonProps) {
   const { colorMode } = useColorMode()
   const Icon = iconMap[provider]
   const displayName = provider.charAt(0).toUpperCase() + provider.slice(1)
+
+  const handleClick = async () => {
+    try {
+      onStart?.()  // Notify start of login
+
+      // Simulate async OAuth login process (replace with real logic)
+      await new Promise((resolve) => setTimeout(resolve, 1000)) // fake 1s delay
+
+      // On success
+      onSuccess?.(provider)
+    } catch (error: any) {
+      const msg = error?.message || `OAuth failed for ${provider}`
+      onError?.(msg)
+    } finally {
+      onFinish?.() // Notify finish (success or error)
+    }
+  }
 
   return (
     <Tooltip label={`Continue with ${displayName}`} hasArrow>
@@ -29,10 +55,9 @@ export function SocialLoginButton({ provider, onClick }: SocialLoginButtonProps)
         aria-label={`Continue with ${displayName}`}
         icon={<Icon />}
         variant="ghost"
-        // Use gold color scheme in dark mode, blue otherwise
         colorScheme={colorMode === 'dark' ? 'yellow' : 'blue'}
         size="lg"
-        onClick={onClick ? onClick : () => console.log(`Login with ${provider}`)}
+        onClick={handleClick}
         _dark={{
           color: 'gold',
           _hover: { bg: 'gray.800' },

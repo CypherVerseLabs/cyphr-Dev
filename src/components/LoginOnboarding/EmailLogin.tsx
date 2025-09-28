@@ -1,11 +1,25 @@
 import { useState } from 'react'
-import { loginWithEmail } from '../../../Api/api'
-import { useAuth } from '../../../../sdk/src/hooks/useAuth'
+import { loginWithEmail } from '../../Api/api'
+import { useAuth } from '../../../sdk/src/hooks/useAuth'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 
-export function EmailLogin() {
+interface EmailLoginProps {
+  onError?: (message: string) => void
+  onLoginSuccess?: () => void
+  onLoginError?: (error: string) => void
+  onStart?: () => void         // NEW
+  onFinish?: () => void        // NEW
+}
+
+export function EmailLogin({
+  onError,
+  onLoginSuccess,
+  onLoginError,
+  onStart,
+  onFinish,
+}: EmailLoginProps) {
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -15,11 +29,15 @@ export function EmailLogin() {
 
   const handleEmailLogin = async () => {
     if (!email || !email.includes('@')) {
-      toast.warning('⚠️ Please enter a valid email.')
+      const msg = '⚠️ Please enter a valid email.'
+      toast.warning(msg)
+      onError?.(msg)
       return
     }
 
     setIsLoading(true)
+    onStart?.()  // Notify parent that loading started
+
     try {
       const { token } = await loginWithEmail(email)
 
@@ -28,19 +46,18 @@ export function EmailLogin() {
       }
 
       saveToken(token)
-
-      // 🚀 Invalidate and refetch wallet queries
       queryClient.invalidateQueries({ queryKey: ['wallets'] })
-
       toast.success('✅ Logged in successfully!')
-
-      // 🚀 Redirect to dashboard or wallet manager
-      navigate('/dashboard') // or '/wallets' or whatever route you use
-
+      onLoginSuccess?.()
+      navigate('/dashboard')
     } catch (err: any) {
-      toast.error(err?.message || '❌ Login failed')
+      const errorMessage = err?.message || '❌ Login failed'
+      toast.error(errorMessage)
+      onError?.(errorMessage)
+      onLoginError?.(errorMessage)
     } finally {
       setIsLoading(false)
+      onFinish?.()  // Notify parent that loading finished
     }
   }
 
