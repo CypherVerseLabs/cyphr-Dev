@@ -253,7 +253,17 @@ export async function fetchWalletTransactions(
   _page = 1,
   _pageSize = 20
 ): Promise<FetchTransactionsResponse> {
-  return getWalletTransactions(walletAddress)
+  const sdkTransactions = await getWalletTransactions(walletAddress)
+
+  const transactions: Transaction[] = sdkTransactions.map((tx) => ({
+    ...tx,
+    timestamp: tx.timestamp.toString(), // Fix: Convert number → string
+  }))
+
+  return {
+    transactions,
+    total: transactions.length,
+  }
 }
 
 /** ---- Wallet Asset APIs (using SDK) ---- */
@@ -264,8 +274,8 @@ export async function fetchWalletTransactions(
 export async function fetchNativeBalance(
   walletAddress: string
 ): Promise<NativeBalanceResponse> {
-  const balance = await sdkGetNativeBalance(walletAddress)
-  return { balance }
+  const result = await sdkGetNativeBalance(walletAddress)
+  return { balance: result.balance } // Assuming 'result' is { balance: string }
 }
 
 /**
@@ -274,7 +284,13 @@ export async function fetchNativeBalance(
 export async function fetchTokenBalances(
   walletAddress: string
 ): Promise<FetchTokensResponse> {
-  const tokens = await sdkGetTokenBalances(walletAddress)
+  const sdkTokens = await sdkGetTokenBalances(walletAddress)
+
+  const tokens: TokenBalance[] = sdkTokens.map((token) => ({
+    ...token,
+    contractAddress: token.tokenAddress, // Fix
+  }))
+
   return { tokens }
 }
 
@@ -284,6 +300,15 @@ export async function fetchTokenBalances(
 export async function fetchNFTs(
   walletAddress: string
 ): Promise<FetchNFTsResponse> {
-  const { erc721, erc1155 } = await sdkGetWalletNFTs(walletAddress)
-  return { erc721, erc1155 }
+  const sdkNFTs = await sdkGetWalletNFTs(walletAddress)
+
+  const nftItems: NFTItem[] = sdkNFTs.map((nft) => ({
+    ...nft,
+    tokenURI: nft.metadata?.tokenURI || '', // Fix: Use real value if available, or fallback
+  }))
+
+  return {
+    erc721: nftItems,
+    erc1155: [],
+  }
 }

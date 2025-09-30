@@ -9,8 +9,8 @@ import {
   Alert,
   AlertIcon,
 } from '@chakra-ui/react'
-import { SocialLoginButton } from '../LoginOnboarding/SocialLoginButton'
-import { EmailLogin } from '../LoginOnboarding/EmailLogin'
+import { SocialLoginButton } from './LoginOnboarding/SocialLoginButton'
+import { EmailLogin } from './LoginOnboarding/EmailLogin'
 import { WalletList } from './WalletList'
 
 interface Chain {
@@ -71,8 +71,6 @@ export default function UnauthenticatedContent({
     setIsConnecting(false)
   }
 
-  // Handle chain change
-
   // Determine RPC URL for selected chain
   const currentRpcUrl =
     selectedChain.chainId === 5150 ? rpcUrl : rpcUrls[selectedChain.chainId] ?? rpcUrl
@@ -96,15 +94,10 @@ export default function UnauthenticatedContent({
               color="gray.600"
               _dark={{ color: 'gray.300' }}
             >
-              Continue with Social
+              SocialLogin
             </Text>
-            <HStack spacing={4} wrap="wrap">
-              <SocialLoginButton
-                provider="google"
-                onError={handleLoginError}
-                onStart={() => setIsConnecting(true)}
-                onFinish={() => setIsConnecting(false)}
-              />
+            <HStack spacing={1} wrap="wrap">
+              
               <SocialLoginButton
                 provider="twitter"
                 onError={handleLoginError}
@@ -139,17 +132,16 @@ export default function UnauthenticatedContent({
               Continue with Email
             </Text>
             <EmailLogin
-              onError={handleLoginError}
-              onStart={() => setIsConnecting(true)}
-              onFinish={() => setIsConnecting(false)}
-            />
+                provider="google"
+                onError={handleLoginError}
+                onStart={() => setIsConnecting(true)}
+                onFinish={() => setIsConnecting(false)}
+              />
           </VStack>
 
           <Divider />
         </>
       )}
-
-     
 
       {/* Wallet Connect */}
       <VStack align="stretch" spacing={2}>

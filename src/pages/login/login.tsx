@@ -1,6 +1,6 @@
 'use client'
 
-import ConnectModal from '../../components/ConnectModal'  // Adjust the path if needed
+import CypherModal from "../../../sdk/src/components/ConnectModal";
 
 export default function Login() {
   const onClose = () => {
@@ -10,10 +10,16 @@ export default function Login() {
   }
 
   return (
-    <ConnectModal
-      forceOpen={true}     // Modal always open
-      onForceClose={onClose} // Allows closing the modal from inside
-      hideButton={true}     // Hide the connect wallet button
-    />
+    <CypherModal
+  forceOpen={true}
+  onForceClose={onClose}
+  hideSections={{
+    button: true,
+    socialLogins: true,
+    footer: true,
+    
+  }}
+/>
+
   )
 }

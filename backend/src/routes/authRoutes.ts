@@ -1,22 +1,23 @@
 import { Router, Request, Response } from 'express';
-import { SiweMessage } from 'siwe';
-import prisma from '../lib/prisma';
+import { SiweMessage, generateNonce } from 'siwe';
 import jwt from 'jsonwebtoken';
+
+import prisma from '../lib/prisma';
 import { authenticateJWT, AuthenticatedRequest } from '../middleware/authMiddleware';
 
 const router = Router();
-
-// In-memory nonce store (replace with Redis or DB in production)
 const nonceStore = new Map<string, string>();
 
-// JWT secret
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET is not set in environment variables');
+}
 
 //
-// ─── 1. Generate nonce ─────────────────────────────────────────────
+// ─── 1. Generate Nonce ─────────────────────────────────────────────
 //
 router.get('/nonce', (_req, res) => {
-  const nonce = (SiweMessage as any).generateNonce();
+  const nonce = generateNonce();
   nonceStore.set(nonce, nonce);
   res.json({ nonce });
 });
@@ -27,30 +28,43 @@ router.get('/nonce', (_req, res) => {
 router.post('/verify', async (req: Request, res: Response) => {
   const { message, signature } = req.body;
 
+  if (!message || !signature) {
+    return res.status(400).json({ error: 'Message and signature are required' });
+  }
+
   try {
-    const siweMessage = new SiweMessage(message) as any;
-    const fields = await siweMessage.validate(signature);
-    const { address, nonce } = fields;
+    const siweMessage = new SiweMessage(message);
+    const domain = req.headers.host!;
+    const nonce = siweMessage.nonce;
 
-    if (!nonceStore.has(nonce)) {
-      return res.status(401).json({ error: 'Invalid nonce' });
-    }
-
-    nonceStore.delete(nonce);
-
-    // Create or update user
-    const user = await prisma.user.upsert({
-      where: { email: `${address}@wallet` },
-      update: {},
-      create: { email: `${address}@wallet` },
+    const { success, data } = await siweMessage.verify({
+      signature,
+      domain,
+      nonce,
     });
 
-    // Create or update wallet
+    if (!success || !data.address || !nonceStore.has(nonce)) {
+      return res.status(401).json({ error: 'SIWE verification failed or nonce invalid' });
+    }
+
+    nonceStore.delete(nonce); // prevent replay attacks
+
+    const normalizedAddress = data.address.toLowerCase();
+    const email = `${normalizedAddress}@wallet`;
+
+    // Upsert user
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: {},
+      create: { email },
+    });
+
+    // Upsert wallet
     const wallet = await prisma.wallet.upsert({
-      where: { address },
+      where: { address: normalizedAddress },
       update: {},
       create: {
-        address,
+        address: normalizedAddress,
         walletType: 'external',
         userId: user.id,
       },
@@ -58,20 +72,20 @@ router.post('/verify', async (req: Request, res: Response) => {
 
     // Create JWT
     const token = jwt.sign(
-      { userId: user.id, address },
+      { userId: user.id, address: normalizedAddress, isAdmin: user.isAdmin },
       JWT_SECRET,
       { expiresIn: '1h' }
     );
 
     res.json({ ok: true, user, wallet, token });
   } catch (e) {
-    console.error('SIWE verification failed', e);
-    res.status(401).json({ error: 'Invalid SIWE message or signature' });
+    console.error('SIWE verification failed:', e);
+    return res.status(401).json({ error: 'Invalid SIWE message or signature' });
   }
 });
 
 //
-// ─── 3. Refresh token ──────────────────────────────────────────────
+// ─── 3. Refresh JWT Token ──────────────────────────────────────────
 //
 router.post('/refresh-token', (req: Request, res: Response) => {
   const authHeader = req.headers['authorization'];
@@ -82,10 +96,22 @@ router.post('/refresh-token', (req: Request, res: Response) => {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; address: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      userId: number;
+      address: string;
+      isAdmin?: boolean;
+    };
+
+    if (!decoded || typeof decoded !== 'object' || !decoded.userId) {
+      return res.status(403).json({ error: 'Invalid token structure' });
+    }
 
     const newToken = jwt.sign(
-      { userId: decoded.userId, address: decoded.address },
+      {
+        userId: decoded.userId,
+        address: decoded.address,
+        isAdmin: decoded.isAdmin,
+      },
       JWT_SECRET,
       { expiresIn: '1h' }
     );
@@ -97,12 +123,11 @@ router.post('/refresh-token', (req: Request, res: Response) => {
 });
 
 //
-// ─── 4. Get authenticated user ─────────────────────────────────────
+// ─── 4. Get Authenticated User ─────────────────────────────────────
 //
 router.get('/me', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { userId } = req.user!;
-
+    const userId = req.jwtUser?.userId;
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: { wallets: true },
@@ -119,30 +144,32 @@ router.get('/me', authenticateJWT, async (req: AuthenticatedRequest, res: Respon
   }
 });
 
-// routes/auth.ts
-
+//
+// ─── 5. Email-based Auth (Optional) ────────────────────────────────
+//
 router.post('/email-login', async (req, res) => {
-  const { email } = req.body
+  const { email } = req.body;
 
-  let user = await prisma.user.findUnique({ where: { email } })
+  if (!email || typeof email !== 'string') {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  let user = await prisma.user.findUnique({ where: { email } });
+
   if (!user) {
-    user = await prisma.user.create({ data: { email } })
+    user = await prisma.user.create({ data: { email } });
   }
 
   const token = jwt.sign(
     {
       userId: user.id,
-      address: '',         // optional
       isAdmin: user.isAdmin,
     },
-    process.env.JWT_SECRET!,
+    JWT_SECRET,
     { expiresIn: '7d' }
-  )
+  );
 
-  res.json({ token })
-})
-
-
+  res.json({ token });
+});
 
 export default router;
-

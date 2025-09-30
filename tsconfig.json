@@ -22,35 +22,18 @@
 
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+
+    /* ✅ Path aliasing */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["sdk/src/*"]
+    }
   },
-  
   "include": [
-  "vite-env.d.ts",
-  "src",
-  "src/hooks/useAuth.ts",
-  "src/lib",
-  "backend/lib/prisma.ts",
-  "sdk/components/WalletModal.tsx",
-  "sdk/Hooks",
-  "sdk/components/WalletList.tsx",
-  "sdk/components/LoginOnboard",
-  "sdk/components/LogoutButton.tsx",
-  "sdk/components/Footer.tsx",
-  "sdk/components/DarkModeToggle.tsx",
-  "sdk/lib/config.ts",
-  "sdk/providers/theme.ts",
-  "src/pages/WalletManager.tsx",
-  "src/components/Layouts/MainLayout.tsx",
-  "src/pages/account/Dashboard.tsx",
-  "src/pages/docs.tsx",
-  "src/pages/Home.tsx",
-  "src/pages/login/login.tsx",
-  "src/pages/PrivateRoute.tsx",
-  "src/pages/Wallets.tsx",
-  "src/pages/account",
-  "src/pages/teams",
-   "sdk/src/lib/authFetch.ts",
-   "backend/src/routes/contracts.routes.ts",
-   "backend/src/routes/walletsRoutes.ts", "sdk/src/lib/createCyphrClient.ts", "sdk/src/utils/clientId.ts"],
+    "vite-env.d.ts",
+    "src",
+    "sdk/src",
+    "backend/src"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

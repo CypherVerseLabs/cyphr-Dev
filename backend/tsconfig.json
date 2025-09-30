@@ -9,6 +9,15 @@
     "strict": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true
-  }
+    "allowSyntheticDefaultImports": true,
+
+    // 👇 Add this to load global type overrides
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ]
+  },
+  "include": [
+    "src"
+  ]
 }

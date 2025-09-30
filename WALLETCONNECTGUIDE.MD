@@ -261,7 +261,9 @@ headerContent	ReactNode	<ModalHeader />	Override the modal header
 footerContent	ReactNode	<Footer />	Override the modal footer
 leftContent	ReactNode	Default wallet forms	Override left pane
 rightContent	ReactNode	<WelcomeRightContent />	Override right pane
+
 🧪 Usage Example
+
 import { ConnectModal } from './components/ConnectModal'
 import { WelcomeRightContent } from './components/WalletModal/cards/WelcomeRightContent'
 

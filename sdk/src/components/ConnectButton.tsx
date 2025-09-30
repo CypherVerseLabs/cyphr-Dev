@@ -15,7 +15,6 @@ import {
   useColorModeValue,
   useToken,
   useToast,
-  Box,
 } from '@chakra-ui/react'
 
 import Footer from './WalletModal/components/Footer'
@@ -26,9 +25,8 @@ import AuthenticatedContent from './WalletModal/AuthenticatedContent'
 import { IconType } from 'react-icons'
 import { FaWallet, FaCog } from 'react-icons/fa'
 import { useAccount, useDisconnect, useEnsName } from 'wagmi'
-import { useAuth } from '../../sdk/src/hooks/useAuth'
+import { useAuth } from '../hooks/useAuth'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { WelcomeRightContent } from './WalletModal/cards/WelcomeRightContent'
 
 export interface WalletModalProps {
   rpcUrl?: string
@@ -43,32 +41,25 @@ export interface WalletModalProps {
   modalSize?: ModalProps['size']
   modalProps?: Partial<Omit<ModalProps, 'isOpen' | 'onClose'>>
   themeColor?: string
+
+  // Controlled mode and hiding button
   forceOpen?: boolean
   onForceClose?: () => void
   hideButton?: boolean
+
+  // Logout redirect path
   logoutRedirectPath?: string
 
-  // ✅ Customization Props
-  buttonTextColor?: string
-  highlightColor?: string
-  modalBg?: string
-  modalTextColor?: string
-  leftPaneBg?: string
-  rightPaneBg?: string
-  leftPaneWidth?: string
-  rightPaneWidth?: string
-  panePadding?: string | number
-  headerContent?: React.ReactNode
-  footerContent?: React.ReactNode
-  leftContent?: React.ReactNode
-  rightContent?: React.ReactNode
+  // 🎨 New customization props
+  backgroundColor?: string
+  textColor?: string
+  fontFamily?: string
 }
 
-// Helper to shorten wallet address
 const shortenAddress = (addr?: string) =>
   addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : ''
 
-export default function ConnectModal({
+export default function ConnectButton({
   rpcUrl = 'http://localhost:8545',
   chainId = 5150,
   onlyWallets = false,
@@ -79,11 +70,11 @@ export default function ConnectModal({
   navLinks = [
     { label: 'My Wallets', href: '/wallets', icon: FaWallet },
     { label: 'Settings', href: '/settings', icon: FaCog },
-    { label: 'Account Settings', href: '/account/settings', icon: FaCog },
-    { label: 'Devices', href: '/account/devices', icon: FaCog },
+    { label: 'Account Settings', href: '/account/settings' },
+    { label: 'Devices', href: '/account/devices' },
   ],
   logo,
-  modalSize = ['xl', '2xl'],
+  modalSize = ['xs', 'sm', 'md'],
   modalProps = {},
   themeColor = 'gold.500',
   forceOpen,
@@ -91,20 +82,10 @@ export default function ConnectModal({
   hideButton = false,
   logoutRedirectPath = '/login',
 
-  // 🆕 Customization
-  buttonTextColor,
-  highlightColor = '#FFD700',
-  modalBg,
-  modalTextColor,
-  leftPaneBg,
-  rightPaneBg,
-  leftPaneWidth = '300px',
-  rightPaneWidth = '400px',
-  panePadding = 6,
-  headerContent,
-  footerContent,
-  leftContent,
-  rightContent,
+  // 🆕 New customization props
+  backgroundColor,
+  textColor,
+  fontFamily,
 }: WalletModalProps) {
   const internalDisclosure = useDisclosure()
   const toast = useToast()
@@ -136,16 +117,14 @@ export default function ConnectModal({
     )
   )
 
-  const buttonBg = bg500 || themeColor
+  const buttonBg = backgroundColor || bg500 || themeColor
   const buttonHoverBg = bg600 || bg400 || themeColor
-  const resolvedButtonTextColor = buttonTextColor ?? useColorModeValue('black', highlightColor)
+  const buttonTextColor = textColor || useColorModeValue('black', '#FFD700')
+  const appliedFontFamily = fontFamily || 'inherit'
+
+  const gold = '#FFD700'
   const isDark = themeOverride === 'dark' || (!themeOverride && colorMode === 'dark')
   const displayName = ensName ?? shortenAddress(address)
-
-  const resolvedModalBg = modalBg ?? (isDark ? 'black' : 'white')
-  const resolvedModalTextColor = modalTextColor ?? (isDark ? highlightColor : 'black')
-  const resolvedLeftBg = leftPaneBg ?? resolvedModalBg
-  const resolvedRightBg = rightPaneBg ?? (isDark ? 'gray.900' : 'gray.50')
 
   const handleLogout = async () => {
     try {
@@ -188,11 +167,12 @@ export default function ConnectModal({
           size="sm"
           variant="solid"
           bg={buttonBg}
-          color={resolvedButtonTextColor}
+          color={buttonTextColor}
           _hover={{ bg: buttonHoverBg }}
           px={4}
           py={2}
           fontSize="sm"
+          fontFamily={appliedFontFamily}
           aria-label={isConnected ? `Wallet connected: ${displayName}` : 'Connect wallet'}
           isLoading={isLoggingOut}
         >
@@ -210,77 +190,34 @@ export default function ConnectModal({
       >
         <ModalOverlay />
         <ModalContent
-          p={0}
-          bg={resolvedModalBg}
-          color={resolvedModalTextColor}
+          p={6}
+          bg={isDark ? 'black' : 'white'}
+          color={isDark ? gold : 'black'}
+          fontFamily={appliedFontFamily} // 🆕 Apply font to modal
           aria-labelledby="wallet-modal-title"
         >
-          <Box display="flex" justifyContent="space-between" alignItems="center" px={6} pt={6}>
-            {headerContent ?? (
-              <ModalHeader
-                displayName={displayName}
-                logo={logo}
-                isDark={isDark}
-              />
-            )}
-            <ModalCloseButton position="relative" top="0" right="0" />
-          </Box>
-
-          <ModalBody p={0}>
-            <Box display="flex" width="100%" height="500px">
-              {/* Left Side */}
-              <Box
-                width={leftPaneWidth}
-                p={panePadding}
-                overflowY="auto"
-                bg={resolvedLeftBg}
-              >
-                {leftContent ?? (
-                  <VStack spacing={6} align="stretch">
-                    {!isConnected ? (
-                      <UnauthenticatedContent
-                        onlyWallets={onlyWallets}
-                        rpcUrl={rpcUrl}
-                        chainId={chainId}
-                        onClose={onClose}
-                      />
-                    ) : (
-                      <AuthenticatedContent
-                        navLinks={navLinks}
-                        onLogout={handleLogout}
-                        onClose={onClose}
-                        currentPath={location.pathname}
-                      />
-                    )}
-                  </VStack>
-                )}
-              </Box>
-
-              {/* Right Side */}
-              <Box
-                width={rightPaneWidth}
-                p={panePadding}
-                overflowY="auto"
-                bg={resolvedRightBg}
-              >
-                {rightContent ?? (
-                  <WelcomeRightContent
-                    imageUrl="https://avatars.githubusercontent.com/u/143012744?v=4&size=64"
-                    title="Welcome!"
-                    subtitle="Let’s get started"
-                    imageSize="250px"
-                    titleFontSize="3xl"
-                    subtitleFontSize="lg"
-                    subtitleColor="gray.600"
-                    spacing={4}
-                    paddingX={8}
-                    />
-                )}
-              </Box>
-            </Box>
+          <ModalHeader displayName={displayName} logo={logo} isDark={isDark} />
+          <ModalCloseButton />
+          <ModalBody mt={4}>
+            <VStack spacing={6} align="stretch">
+              {!isConnected ? (
+                <UnauthenticatedContent
+                  onlyWallets={onlyWallets}
+                  rpcUrl={rpcUrl}
+                  chainId={chainId}
+                  onClose={onClose}
+                />
+              ) : (
+                <AuthenticatedContent
+                  navLinks={navLinks}
+                  onLogout={handleLogout}
+                  onClose={onClose}
+                  currentPath={location.pathname}
+                />
+              )}
+            </VStack>
+            <Footer />
           </ModalBody>
-
-          {footerContent ?? <Footer />}
         </ModalContent>
       </Modal>
     </>

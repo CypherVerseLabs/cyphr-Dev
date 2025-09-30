@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { Box, Text, VStack } from '@chakra-ui/react'
-import WalletModal from '../components/ConnectButton'
+import WalletModal from '../../sdk/src/components/ConnectButton'
 
 export default function Solutions() {
   const { isConnected } = useAccount()

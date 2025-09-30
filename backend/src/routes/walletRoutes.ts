@@ -52,6 +52,25 @@ router.get('/', async (req: Request, res: Response) => {
 })
 
 /**
+ * GET /api/wallets/user
+ * Authenticated route to fetch wallets for the logged-in user
+ */
+router.get('/user', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.jwtUser?.userId;
+  if (!userId) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+
+  try {
+    const wallets = await prisma.wallet.findMany({ where: { userId } })
+    res.json({ success: true, data: wallets })
+  } catch (err) {
+    console.error('GET /wallets/user error:', err)
+    res.status(500).json({ success: false, error: 'Internal server error' })
+  }
+})
+
+/**
  * GET /api/wallets/:address
  * Public route to fetch a specific wallet by address
  */
@@ -75,26 +94,6 @@ router.get('/:address', async (req: Request, res: Response) => {
   }
 })
 
-/**
- * GET /api/wallets/user
- * Authenticated route to fetch wallets for the logged-in user
- */
-router.get('/user', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
-  const userId = req.user?.userId
-  if (!userId) {
-    return res.status(401).json({ success: false, error: 'Unauthorized' })
-  }
-
-  try {
-    const wallets = await prisma.wallet.findMany({ where: { userId } })
-    res.json({ success: true, data: wallets })
-  } catch (err) {
-    console.error('GET /wallets/user error:', err)
-    res.status(500).json({ success: false, error: 'Internal server error' })
-  }
-})
-
-
 router.post('/verify-challenge', async (req: Request, res: Response) => {
   const { address } = req.body
 
@@ -110,7 +109,7 @@ router.post('/verify-challenge', async (req: Request, res: Response) => {
 
 router.post('/verify', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
   const { address, message, signature } = req.body
-  const userId = req.user?.userId
+  const userId = req.jwtUser?.userId;
 
   if (!address || !message || !signature) {
     return res.status(400).json({ error: 'Missing fields' })
@@ -175,7 +174,7 @@ router.post(
       return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    const userId = req.user?.userId;
+    const userId = req.jwtUser?.userId;
     let { address, walletType, label, metadata, chainId } = req.body;
 
     if (!userId) {
@@ -237,7 +236,7 @@ router.patch(
       return res.status(400).json({ success: false, errors: errors.array() })
     }
 
-    const userId = req.user?.userId
+    const userId = req.jwtUser?.userId;
     const addressParam = req.params.address.toLowerCase()
 
     if (!userId) {
@@ -276,7 +275,7 @@ router.patch(
  * Authenticated route to unlink/remove a wallet
  */
 router.delete('/:address', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
-  const userId = req.user?.userId
+  const userId = req.jwtUser?.userId;
   const addressParam = req.params.address.toLowerCase()
 
   if (!userId) {
@@ -305,7 +304,7 @@ router.delete('/:address', authenticateJWT, async (req: AuthenticatedRequest, re
  * Authenticated route to manually refresh ENS name for a wallet
  */
 router.patch('/:address/refresh-ens', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
-  const userId = req.user?.userId
+  const userId = req.jwtUser?.userId;
   const addressParam = req.params.address.toLowerCase()
 
   if (!userId) {

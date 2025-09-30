@@ -14,7 +14,7 @@ router.patch(
   async (req: AuthenticatedRequest, res) => {
     const { displayName, email } = req.body
     const avatarFile = req.file
-    const userId = req.user?.userId
+    const userId = req.jwtUser?.userId;
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' })
@@ -45,7 +45,7 @@ router.patch(
 
 // DELETE /api/account
 router.delete('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
-  const userId = req.user?.userId
+  const userId = req.jwtUser?.userId;
 
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized' })

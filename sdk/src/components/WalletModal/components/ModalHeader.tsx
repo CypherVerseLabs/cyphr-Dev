@@ -1,6 +1,6 @@
 'use client'
 
-import { Avatar, Box, Flex, Text, useColorModeValue } from '@chakra-ui/react'
+import { Avatar, Box, Flex, Heading, useColorModeValue } from '@chakra-ui/react'
 
 interface ModalHeaderProps {
   displayName: string
@@ -27,6 +27,8 @@ export default function ModalHeader({
       justifyContent="center"
       fontWeight="bold"
       color="black"
+      aria-label="Wallet logo"
+      role="img"
     >
       C
     </Box>
@@ -36,7 +38,7 @@ export default function ModalHeader({
     if (!showAvatar) return null
 
     if (typeof logo === 'string') {
-      return <Avatar src={logo} size="sm" name="Logo" />
+      return <Avatar src={logo} size="sm" name={displayName || 'Logo'} />
     } else if (logo) {
       return <Box>{logo}</Box>
     } else {
@@ -52,16 +54,15 @@ export default function ModalHeader({
   return (
     <Flex align="center" gap={3} mb={2}>
       {renderLogo()}
-      <Text
+      <Heading
         id="wallet-modal-title"
-        role="heading"
-        aria-level={2}
+        as="h2"
         fontSize="md"
         fontWeight="bold"
         color={textColor}
       >
         {titleText ?? (displayName ? `Welcome ${displayName}` : 'Connect Wallet')}
-      </Text>
+      </Heading>
     </Flex>
   )
 }

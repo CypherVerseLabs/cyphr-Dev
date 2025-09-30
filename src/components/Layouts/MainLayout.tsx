@@ -21,7 +21,7 @@ import DarkModeToggle from '../DarkModeToggle'
 import { NavLink, Outlet } from 'react-router-dom'
 import logo1 from '../../../public/logo1.png'
 import { Link as RouterLink } from 'react-router-dom'
-import WalletModal from '../ConnectButton'
+import WalletModal from '../../../sdk/src/components/ConnectButton'
 
 
 const navLinks = [

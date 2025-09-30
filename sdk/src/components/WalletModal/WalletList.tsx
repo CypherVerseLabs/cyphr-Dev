@@ -9,8 +9,8 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 import { useConnect, useAccount, useDisconnect, Connector } from 'wagmi'
-import { useAuth } from '../../../sdk/src/hooks/useAuth'
-import WalletOption from '../WalletApps'
+import { useAuth } from '../../hooks/useAuth'
+import WalletOption from '../../../../src/components/WalletApps'
 
 export interface WalletListProps {
   rpcUrl?: string

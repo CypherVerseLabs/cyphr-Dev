@@ -8,7 +8,7 @@ import {
   Text,
   useDisclosure,
 } from '@chakra-ui/react'
-import WalletModal from '../../../components/ConnectButton'
+import WalletModal from '../../../../sdk/src/components/ConnectButton'
 
 const tabs = ['Mode', 'Button', 'Code']
 

@@ -52,6 +52,8 @@ export const WelcomeRightContent = ({
         mt={-4}
       />
 
+      
+
       <Box mt={6}>
         <Text fontSize={titleFontSize} fontWeight={titleFontWeight}>
           {title}

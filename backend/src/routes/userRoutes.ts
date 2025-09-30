@@ -1,10 +1,14 @@
 import { Router, Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { body, validationResult } from 'express-validator';
+import { authenticateJWT } from '../middleware/authenticateJWT';
+import { AuthenticatedRequest } from '../types/auth';
 
 const router = Router();
 
-// GET user by wallet address (must be before /:id)
+// ------------------------
+// GET user by wallet
+// ------------------------
 router.get('/by-wallet/:address', async (req: Request, res: Response) => {
   const { address } = req.params;
 
@@ -25,8 +29,10 @@ router.get('/by-wallet/:address', async (req: Request, res: Response) => {
   }
 });
 
-// GET full user list with wallets (optional)
-router.get('/full', async (req: Request, res: Response) => {
+// ------------------------
+// GET full user list w/ wallets (Admin only?)
+// ------------------------
+router.get('/full', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
   const page = parseInt((req.query.page as string) || '1', 10);
   const limit = parseInt((req.query.limit as string) || '10', 10);
 
@@ -52,8 +58,10 @@ router.get('/full', async (req: Request, res: Response) => {
   }
 });
 
-// GET users list with pagination
-router.get('/', async (req: Request, res: Response) => {
+// ------------------------
+// GET paginated user list
+// ------------------------
+router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
   const page = parseInt((req.query.page as string) || '1', 10);
   const limit = parseInt((req.query.limit as string) || '10', 10);
 
@@ -82,8 +90,31 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET user by id
-router.get('/:id', async (req: Request, res: Response) => {
+// ------------------------
+// GET /me — current user
+// ------------------------
+router.get('/me', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.jwtUser?.userId;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { wallets: true },
+    });
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.json({ user });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ------------------------
+// GET user by ID
+// ------------------------
+router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
   const id = Number(req.params.id);
   try {
     const user = await prisma.user.findUnique({ where: { id } });
@@ -94,16 +125,22 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// PUT update user by id
+// ------------------------
+// PUT update user
+// ------------------------
 router.put(
   '/:id',
-  [
-    body('email').optional().isEmail().withMessage('Valid email required'),
-  ],
-  async (req: Request, res: Response) => {
+  authenticateJWT,
+  [body('email').optional().isEmail().withMessage('Valid email required')],
+  async (req: AuthenticatedRequest, res: Response) => {
     const id = Number(req.params.id);
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    // Optional: only allow updating self unless admin
+    if (req.jwtUser?.userId !== id && !req.jwtUser?.isAdmin) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
 
     try {
       const updatedUser = await prisma.user.update({
@@ -117,9 +154,17 @@ router.put(
   }
 );
 
-// DELETE user by id
-router.delete('/:id', async (req: Request, res: Response) => {
+// ------------------------
+// DELETE user
+// ------------------------
+router.delete('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
   const id = Number(req.params.id);
+
+  // Optional: only allow self-deletion or admins
+  if (req.jwtUser?.userId !== id && !req.jwtUser?.isAdmin) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
   try {
     await prisma.user.delete({ where: { id } });
     res.status(204).send();

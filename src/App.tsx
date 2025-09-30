@@ -22,6 +22,9 @@ import MainLayout from './components/Layouts/MainLayout'
 import PlaygroundLayout from './pages/playground/components/PlayLayout'
 import Wallets from './pages/playground/play/plWallets'
 import PlayMain from './pages/playground/play/playMain'
+import Onramp from './pages/account/Onramp'
+import Receive from './pages/account/Receive'
+import Send from './pages/account/Send'
 
 
 
@@ -63,6 +66,11 @@ export default function App() {
           <Route path="devices" element={<AccountDevices />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="nfts" element={<NFTs />} />
+
+          <Route path="send" element={<Send />} />
+          <Route path="receive" element={<Receive />} />
+          <Route path="buy" element={<Onramp />} />
+
         </Route>
       </Route>
 

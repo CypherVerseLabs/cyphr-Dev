@@ -2,7 +2,7 @@
 
 import { HStack, Box } from '@chakra-ui/react'
 import { Outlet } from 'react-router-dom'
-import SidebarNav from '../../components/WalletModal/SidebarNav' // adjust path if needed
+import SidebarNav from '../../../sdk/src/components/WalletModal/SidebarNav' // adjust path if needed
 
 export default function AccountLayout() {
   return (

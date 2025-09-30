@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../../sdk/src/hooks/useAuth'
+import { useAuth } from '../../../hooks/useAuth'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 
