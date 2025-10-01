@@ -1,5 +1,5 @@
 {
-  "name": "cyphr-sdk",
+  "name": "@cyphr/sdk",
   "version": "1.0.0",
   "description": "SDK for integrating Cyph Wallet with React, Chakra UI, and Wagmi.",
   "keywords": ["web3", "wallet", "react", "chakra-ui", "wagmi", "sdk", "cyph"],
