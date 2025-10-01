@@ -1,27 +1,25 @@
 {
-  "name": "@cyphr/sdk",
+  "name": "cyphr-sdk",
   "version": "1.0.0",
-  "main": "dist/index.cjs.js",
-  "keywords": ["web3", "wallet", "react", "chakra-ui", "wagmi", "sdk", "cyph"],
   "description": "SDK for integrating Cyph Wallet with React, Chakra UI, and Wagmi.",
-  "module": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "exports": {
-  ".": {
-    "types": "./dist/index.d.ts",
-    "import": "./dist/index.esm.js",
-    "require": "./dist/index.cjs.js"
+  "keywords": ["web3", "wallet", "react", "chakra-ui", "wagmi", "sdk", "cyph"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CypherVerseLabs/cyph-wallet-sdk.git"
   },
-  "./utils": {
-    "import": "./dist/utils/index.esm.js",
-    "require": "./dist/utils/index.cjs.js",
-    "types": "./dist/utils/index.d.ts"
-  }
-}
-,
+  "files": ["dist"],
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js"
+    },
+    "./utils": {
+      "import": "./dist/utils/index.esm.js",
+      "require": "./dist/utils/index.cjs.js"
+    }
+  },
   "scripts": {
     "clean": "rimraf dist",
     "build": "tsup src/index.ts --format cjs,esm --dts",
@@ -38,15 +36,9 @@
     "tsup": "^8.5.0",
     "typescript": "^5.8.3"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/CypherVerseLabs/cyph-wallet-sdk.git"
-  },
-
   "engines": {
-  "node": ">=18"
-},
-  "license": "MIT",
+    "node": ">=18"
+  },
   "sideEffects": [
     "./dist/styles/theme-vars.css"
   ]

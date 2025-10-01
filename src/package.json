@@ -1,6 +1,5 @@
 {
-  "name": "wagmi-project",
-  "private": true,
+  "name": "@cyphr/dev",
   "version": "0.0.0",
   "type": "module",
   "scripts": {

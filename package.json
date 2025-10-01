@@ -1,7 +1,6 @@
 
 {
-  "name": "cyphwallet",
-  "private": true,
+  "name": "cyphr",
   "version": "0.0.1",
   "workspaces": ["src", "sdk", "backend"],
   "scripts": {
