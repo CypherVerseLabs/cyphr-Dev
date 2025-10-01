@@ -1,6 +1,6 @@
 // sdk/src/components/index.ts
 
-export { WalletList } from './WalletList'
+export { Wallets } from './LoginOnboarding/Wallets'
 export { SocialLoginButton } from './LoginOnboarding/SocialLoginButton'
 export { EmailLogin } from './LoginOnboarding/EmailLogin'
 export { default as DarkModeToggle } from '../../../../src/components/DarkModeToggle'

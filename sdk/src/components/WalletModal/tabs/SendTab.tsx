@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { useWalletClient } from 'wagmi'
-import { sendCrypto } from '../../../../utils'
+import { sendCrypto } from '../../../utils'
 import {
   Box,
   VStack,

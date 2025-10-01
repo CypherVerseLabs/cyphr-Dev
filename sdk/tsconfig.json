@@ -35,6 +35,6 @@
     "src/components/WalletModal/WalletManager.tsx",
     "../src/lib/wallets.ts",
     "../src/Api/walletBalance.ts"
-  ],
+, "../src/components/SidebarNav.tsx"  ],
   "exclude": ["dist", "node_modules"]
 }

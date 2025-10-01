@@ -1,25 +1,28 @@
 'use client'
 
-import CypherModal from "../../../sdk/src/components/ConnectModal";
+import { CypherModal } from "../../../sdk/src/components/ConnectModal";
 
-export default function Login() {
+interface LoginProps {
+  phoneNumber?: string;
+}
+
+export default function Login({ phoneNumber }: LoginProps) {
   const onClose = () => {
-    // Implement what should happen when modal closes forcibly, if needed
-    // For now, maybe just a no-op or console.log
-    console.log('Modal force closed')
+    console.log('Modal force closed');
   }
+
+  // You can use phoneNumber here if needed, e.g.
+  console.log('Phone Number:', phoneNumber);
 
   return (
     <CypherModal
-  forceOpen={true}
-  onForceClose={onClose}
-  hideSections={{
-    button: true,
-    socialLogins: true,
-    footer: true,
-    
-  }}
-/>
-
-  )
+      forceOpen={true}
+      onForceClose={onClose}
+      hideSections={{
+        button: true,
+        socialLogins: true,
+        footer: true,
+      }}
+    />
+  );
 }

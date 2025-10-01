@@ -1,17 +1,47 @@
 'use client'
 
-export default function PasskeyLogin() {
-  const handlePasskeyLogin = () => {
-    alert('Passkey login clicked')
-    // 🔐 Placeholder — integrate with WebAuthn/FIDO2 later
+import { Button, useToast } from '@chakra-ui/react'
+
+interface PasskeyLoginProps {
+  onStart?: () => void
+  onFinish?: () => void
+  onError?: (message: string) => void
+}
+
+export default function PasskeyLogin({
+  onStart,
+  onFinish,
+  onError,
+}: PasskeyLoginProps) {
+  const toast = useToast()
+
+  const handlePasskeyLogin = async () => {
+    onStart?.()
+    try {
+      // This is where you would use navigator.credentials.get()
+      // Simulating success
+      await new Promise((res) => setTimeout(res, 1000))
+
+      toast({
+        title: 'Passkey login successful',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (err: any) {
+      onError?.('Passkey login failed')
+    } finally {
+      onFinish?.()
+    }
   }
 
   return (
-    <button
+    <Button
+      width="100%"
+      colorScheme="gray"
       onClick={handlePasskeyLogin}
-      className="w-full bg-purple-600 text-white py-2 rounded"
     >
       Continue with Passkey
-    </button>
+    </Button>
   )
 }

@@ -1,5 +1,7 @@
+'use client'
+
 import React from 'react'
-import { Box, ModalCloseButton } from '@chakra-ui/react'
+import { Box, ModalCloseButton, useColorModeValue } from '@chakra-ui/react'
 import ModalHeader from './ModalHeader'
 
 interface ConnectModalHeaderProps {
@@ -15,8 +17,17 @@ export default function ConnectModalHeader({
   logo,
   isDark,
 }: ConnectModalHeaderProps) {
+  const bgColor = useColorModeValue('white', 'black') // ✅ black in dark mode, white in light
+
   return (
-    <Box display="flex" justifyContent="space-between" alignItems="center" px={6} pt={6}>
+    <Box
+      display="flex"
+      justifyContent="space-between"
+      alignItems="center"
+      px={6}
+      pt={6}
+      bg={bgColor} // ✅ set background
+    >
       {headerContent ?? (
         <ModalHeader displayName={displayName} logo={logo} isDark={!!isDark} />
       )}

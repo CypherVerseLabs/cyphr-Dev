@@ -11,14 +11,9 @@ import {
   useColorMode,
   useToast,
   Box,
-  useBreakpointValue,
 } from '@chakra-ui/react'
 
-import { IconType } from 'react-icons'
-import { FaWallet, FaCog } from 'react-icons/fa'
 import { useAccount, useDisconnect, useEnsName } from 'wagmi'
-
-// ✅ Injected from SDK consumer (don't hardcode)
 import { useAuth } from '../hooks/useAuth'
 
 import ConnectModalFooter from '../components/WalletModal/components/ConnectModalFooter'
@@ -26,122 +21,143 @@ import ConnectModalHeader from '../components/WalletModal/components/ConnectModa
 import ConnectModalLeftPane from '../components/WalletModal/components/ConnectModalLeftPane'
 import ConnectModalRightPane from '../components/WalletModal/components/ConnectModalRightPane'
 import ConnectButtonUI from '../components/WalletModal/components/ConnectButtonUi'
-import WalletActionsTabs from '../components/WalletModal/components/WalletActionsModal'
+
+import SendTabComponent from './WalletModal/tabs/SendTab'
+import BuyTabComponent from './WalletModal/tabs/BuyTab'
+import DashboardTab from './WalletModal/tabs/DashboardTab'
+
+import UnauthenticatedContent from './WalletModal/UnauthenticatedContent'
+
+import { FaPaperPlane, FaShoppingCart } from 'react-icons/fa'
+
+import type { TabItem, TabViewType } from './WalletModal/types/tabs'
 
 export interface CypherModalProps {
-  rpcUrl?: string
-  chainId?: number
-  onlyWallets?: boolean
   onLogin?: (token: string) => void
   onLogout?: () => void
-  themeOverride?: 'light' | 'dark'
-  buttonText?: string
-  navLinks?: { label: string; href: string; icon?: IconType }[]
-  logo?: string | React.ReactNode
-  modalSize?: ModalProps['size']
-  modalProps?: Partial<Omit<ModalProps, 'isOpen' | 'onClose'>>
-  themeColor?: string
+  onLogoutRedirect?: () => void
+
   forceOpen?: boolean
   onForceClose?: () => void
   hideButton?: boolean
-  containerHeight?: string | number
-
-  buttonTextColor?: string
-  highlightColor?: string
-  modalBg?: string
-  modalTextColor?: string
-  leftPaneBg?: string
-  rightPaneBg?: string
-  leftPaneWidth?: string
-  rightPaneWidth?: string
-  panePadding?: string | number
-  headerContent?: React.ReactNode
-  footerContent?: React.ReactNode
-  leftContent?: React.ReactNode
-  rightContent?: React.ReactNode
 
   hideSections?: {
     button?: boolean
-    header?: boolean
-    footer?: boolean
-    leftPane?: boolean
-    rightPane?: boolean
     socialLogins?: boolean
+    showOnlySocialLogins?: boolean
+    footer?: boolean
   }
 
-  // ✅ Optional logout handler override
-  onLogoutRedirect?: () => void
+  buttonText?: string
+  themeColor?: string
+  buttonTextColor?: string
+
+  modalSize?: ModalProps['size']
+  navLinks?: { label: string; href: string; icon?: any }[]
+  logo?: string | React.ReactNode
+
+  onlyWallets?: boolean
+  rpcUrl?: string
+  chainId?: number
+
+  activeTab?: string
+  onTabChange?: (tab: string) => void
+
+  headerContent?: React.ReactNode
+  footerContent?: React.ReactNode
+
+  backgroundColor?: string // ✅ New prop
 }
 
-const shortenAddress = (addr?: string) =>
-  addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : ''
-
 export function CypherModal({
-  rpcUrl = 'http://localhost:8545',
-  chainId = 5150,
-  onlyWallets = false,
   onLogin,
   onLogout,
   onLogoutRedirect,
-  themeOverride,
-  buttonText = 'Connect Wallet',
-  navLinks = [
-    { label: 'My Wallets', href: '/wallets', icon: FaWallet },
-    { label: 'Settings', href: '/settings', icon: FaCog },
-  ],
-  logo,
-  modalSize,
-  modalProps = {},
-  themeColor = 'gold.500',
   forceOpen,
   onForceClose,
   hideButton = false,
-  containerHeight = '440px',
+  hideSections = {},
 
-  buttonTextColor,
-  highlightColor = '#FFD700',
-  modalBg,
-  modalTextColor,
-  leftPaneBg,
-  rightPaneBg = '#000000',
-  leftPaneWidth = '400px',
-  rightPaneWidth = '600px',
-  panePadding = 6,
+  buttonText = 'Connect Wallet',
+  themeColor = '#FFD700',
+  buttonTextColor = 'black',
+
+  modalSize,
+  navLinks = [],
+  logo,
+
+  onlyWallets = false,
+  rpcUrl = '',
+  chainId = 5150,
+
+  activeTab,
+  onTabChange,
+
   headerContent,
   footerContent,
-  rightContent,
+
+  backgroundColor, // ✅ Custom background color
 }: CypherModalProps) {
   const disclosure = useDisclosure()
   const toast = useToast()
   const { colorMode } = useColorMode()
 
-  const isControlled = typeof forceOpen === 'boolean'
-  const isOpen = isControlled ? forceOpen : disclosure.isOpen
-  const onOpen = isControlled ? () => {} : disclosure.onOpen
-  const onClose = isControlled ? (onForceClose || (() => {})) : disclosure.onClose
-
   const { isConnected, address } = useAccount()
   const { disconnect } = useDisconnect()
   const { clearToken, token } = useAuth()
   const { data: ensName } = useEnsName({ address })
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const isDark = themeOverride === 'dark' || (!themeOverride && colorMode === 'dark')
-  const displayName = useMemo(() => ensName ?? shortenAddress(address), [ensName, address])
-  const modalBgResolved = modalBg ?? (isDark ? 'black' : 'white')
-  const textColorResolved = modalTextColor ?? (isDark ? highlightColor : 'black')
-  const leftBg = leftPaneBg ?? modalBgResolved
-  const rightBg = rightPaneBg ?? (isDark ? 'gray.900' : 'gray.50')
-  const finalSize = modalSize ?? useBreakpointValue({ base: 'sm', md: 'xl', lg: '2xl' }) ?? '2xl'
+  const isControlled = typeof forceOpen === 'boolean'
+  const isOpen = isControlled ? forceOpen : disclosure.isOpen
+  const onOpen = isControlled ? () => {} : disclosure.onOpen
+  const onClose = isControlled ? onForceClose || (() => {}) : disclosure.onClose
+
+  const resolvedBgColor = backgroundColor || (colorMode === 'dark' ? 'black' : 'white') // ✅ Color resolution
+
+  const displayName = useMemo(
+    () => ensName ?? (address ? `${address.slice(0, 6)}...${address.slice(-4)}` : ''),
+    [ensName, address]
+  )
+
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [selectedNetwork, setSelectedNetwork] = useState('Ethereum')
+
+  const defaultTabs: TabItem[] = [
+    { label: 'Send', value: 'send', icon: FaPaperPlane },
+    { label: 'Buy', value: 'buy', icon: FaShoppingCart },
+    { label: 'Receive', value: 'receive' },
+    { label: 'Transactions', value: 'transactions' },
+    { label: 'View Funds', value: 'view-funds' },
+    { label: 'Switch Account', value: 'switch-account' },
+  ]
+
+  const isControlledTab = typeof activeTab === 'string'
+  const [internalActiveTab, setInternalActiveTab] = useState(defaultTabs[0].value)
+  const currentTab = isControlledTab ? activeTab : internalActiveTab
+
+  const setTab = (tab: TabViewType) => {
+    if (isControlledTab) {
+      onTabChange?.(tab)
+    } else {
+      setInternalActiveTab(tab)
+    }
+  }
+
+  useEffect(() => {
+    if (token) {
+      onLogin?.(token)
+    }
+  }, [token, onLogin])
 
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true)
       await disconnect()
       clearToken()
-      onClose()
       onLogout?.()
       onLogoutRedirect?.()
+      onClose()
+
       toast({
         title: 'Logged out',
         status: 'success',
@@ -151,7 +167,7 @@ export function CypherModal({
     } catch (error: any) {
       toast({
         title: 'Logout failed',
-        description: error?.message || 'Please try again',
+        description: error.message || 'Please try again',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -161,11 +177,43 @@ export function CypherModal({
     }
   }
 
-  useEffect(() => {
-    if (token) {
-      onLogin?.(token)
+  const renderTabContent = (): React.ReactNode => {
+    if (!isConnected) {
+      if (hideSections?.socialLogins) return null
+
+      return (
+        <UnauthenticatedContent
+          showWallets={true}
+          rpcUrl={rpcUrl}
+          chainId={chainId}
+          onClose={onClose}
+        />
+      )
     }
-  }, [token, onLogin])
+
+    switch (currentTab) {
+      case 'send':
+        return <SendTabComponent />
+      case 'buy':
+        return <BuyTabComponent moonpayApiKey="" transakApiKey="" />
+      case 'receive':
+      case 'transactions':
+      case 'view-funds':
+      case 'switch-account':
+        return (
+          <DashboardTab
+            onDisconnect={handleLogout}
+            onSwitchAccount={() => setTab('switch-account')}
+            onViewFunds={() => setTab('view-funds')}
+            onTransactions={() => setTab('transactions')}
+            onNetworkChange={setSelectedNetwork}
+            selectedNetwork={selectedNetwork}
+          />
+        )
+      default:
+        return <Box p={4}>Tab content not available.</Box>
+    }
+  }
 
   return (
     <>
@@ -178,59 +226,75 @@ export function CypherModal({
           isLoggingOut={isLoggingOut}
           themeColor={themeColor}
           buttonTextColor={buttonTextColor}
+          buttonSize="sm"
         />
       )}
 
-      <Modal
-        isOpen={isOpen}
-        onClose={onClose}
-        isCentered
-        size={finalSize}
-        motionPreset="slideInBottom"
-        {...modalProps}
-      >
+      <Modal isOpen={isOpen} onClose={onClose} isCentered size={modalSize || '2xl'}>
         <ModalOverlay />
-        <ModalContent
-          p={0}
-          bg={modalBgResolved}
-          color={textColorResolved}
-          aria-labelledby="wallet-modal-title"
-        >
+        <ModalContent p={0}>
           <ConnectModalHeader
-            headerContent={headerContent}
-            displayName={displayName}
-            logo={logo}
-            isDark={isDark}
-          />
+  headerContent={headerContent}
+  displayName={displayName}
+  logo={logo}
+  isDark={colorMode === 'dark'} // ✅
+/>
 
           <ModalBody p={0}>
-            <Box display="flex" width="100%" height={containerHeight}>
+            <Box display="flex" flexDirection={{ base: 'column', md: 'row' }}>
               <ConnectModalLeftPane
                 isConnected={isConnected}
-                leftPaneWidth={leftPaneWidth}
-                panePadding={panePadding}
-                resolvedLeftBg={leftBg}
+                leftPaneWidth={{ base: '100%', md: '400px' }}
+                panePadding={6}
+                resolvedLeftBg={resolvedBgColor}
                 onlyWallets={onlyWallets}
                 rpcUrl={rpcUrl}
                 chainId={chainId}
                 onClose={onClose}
                 navLinks={navLinks}
-                handleLogout={handleLogout} location={undefined}              />
+                handleLogout={handleLogout}
+                location={undefined}
+                tabs={isConnected ? defaultTabs : []}
+                activeTab={currentTab}
+                setActiveTab={setTab}
+                activeTabColor={themeColor}
+                inactiveTabColor="gray.500"
+              />
 
               <ConnectModalRightPane
-                rightPaneWidth={rightPaneWidth}
-                panePadding={panePadding}
-                resolvedRightBg={rightBg}
-                rightContent={isConnected ? <WalletActionsTabs /> : rightContent}
+                rightPaneWidth={{ base: '100%', md: '600px' }}
+                panePadding={6}
+                resolvedRightBg={resolvedBgColor}
+                rightContent={
+                  !isConnected ? (
+                    <UnauthenticatedContent
+                      showSocialLogins={true}
+                      showEmailLogin={true}
+                      showPhoneLogin={true}
+                      showPasskeyLogin={true}
+                      rpcUrl={rpcUrl}
+                      chainId={chainId}
+                      onClose={onClose}
+                    />
+                  ) : (
+                    renderTabContent()
+                  )
+                }
                 isLoggedIn={isConnected}
+                activeTab={currentTab}
               />
             </Box>
           </ModalBody>
 
-          <ConnectModalFooter footerContent={footerContent} />
+          {!hideSections.footer && (
+            <ConnectModalFooter
+  footerContent={footerContent}
+  backgroundColor={colorMode === 'dark' ? 'black' : 'white'} // ✅ optional override
+  borderColor={colorMode === 'dark' ? 'gray.700' : 'gray.200'}
+/>
+          )}
         </ModalContent>
       </Modal>
     </>
   )
 }
-export default CypherModal;

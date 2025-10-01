@@ -62,7 +62,6 @@ const shortenAddress = (addr?: string) =>
 export default function ConnectButton({
   rpcUrl = 'http://localhost:8545',
   chainId = 5150,
-  onlyWallets = false,
   onLogin,
   onLogout,
   themeOverride,
@@ -202,7 +201,7 @@ export default function ConnectButton({
             <VStack spacing={6} align="stretch">
               {!isConnected ? (
                 <UnauthenticatedContent
-                  onlyWallets={onlyWallets}
+                  
                   rpcUrl={rpcUrl}
                   chainId={chainId}
                   onClose={onClose}

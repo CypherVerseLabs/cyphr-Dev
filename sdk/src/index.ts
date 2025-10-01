@@ -1,3 +1,4 @@
+
 // Default export (optional)
 export { CypherProvider } from './providers/CyphrProvider'
 
@@ -22,7 +23,7 @@ export { CypherModal } from './components/ConnectModal'
 
 export { default as ConnectButtonUI } from './components/WalletModal/components/ConnectButtonUi'
 export { default as ConnectModalRightPane } from './components/WalletModal/components/ConnectModalRightPane'
-export type { ConnectModalRightPaneProps } from './components/WalletModal/components/ConnectModalRightPane'
+export { default as ConnectModalRightPaneProps } from './components/WalletModal/components/ConnectModalRightPane'
 
 
 // (Optional) Component wrappers or helpers

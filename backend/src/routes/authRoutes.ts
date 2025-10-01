@@ -1,12 +1,22 @@
 import { Router, Request, Response } from 'express';
 import { SiweMessage, generateNonce } from 'siwe';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import { customAlphabet } from 'nanoid'
+import rateLimit from 'express-rate-limit';
 
 import prisma from '../lib/prisma';
 import { authenticateJWT, AuthenticatedRequest } from '../middleware/authMiddleware';
 
 const router = Router();
 const nonceStore = new Map<string, string>();
+const generateOTP = customAlphabet('0123456789', 6)
+
+const otpRequestLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 3,
+  message: 'Too many OTP requests, please try again later',
+});
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -145,7 +155,7 @@ router.get('/me', authenticateJWT, async (req: AuthenticatedRequest, res: Respon
 });
 
 //
-// ─── 5. Email-based Auth (Optional) ────────────────────────────────
+// ─── 5. Email-only login (fallback) ────────────────────────────────
 //
 router.post('/email-login', async (req, res) => {
   const { email } = req.body;
@@ -170,6 +180,157 @@ router.post('/email-login', async (req, res) => {
   );
 
   res.json({ token });
+});
+
+//
+// ─── 6. Register with Email + Password ─────────────────────────────
+//
+router.post('/register', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+
+  if (existingUser && existingUser.password) {
+    return res.status(400).json({ error: 'User already exists with email/password' });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const user = await prisma.user.upsert({
+    where: { email },
+    update: { password: hashedPassword },
+    create: { email, password: hashedPassword },
+  });
+
+  const token = jwt.sign({ userId: user.id }, JWT_SECRET!, { expiresIn: '7d' });
+
+  res.json({ token, user });
+});
+
+//
+// ─── 7. Login with Email + Password ────────────────────────────────
+//
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user || !user.password) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+
+  const isValid = await bcrypt.compare(password, user.password);
+
+  if (!isValid) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+
+  const token = jwt.sign(
+    { userId: user.id, isAdmin: user.isAdmin },
+    JWT_SECRET!,
+    { expiresIn: '7d' }
+  );
+
+  res.json({ token, user });
+});
+
+router.post('/phone/request-otp', otpRequestLimiter, async (req, res) => {
+  const { phoneNumber } = req.body
+
+  if (!phoneNumber) {
+    return res.status(400).json({ error: 'Phone number is required' })
+  }
+
+  const otp = generateOTP()
+  const expires = new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
+
+  await prisma.phoneLogin.upsert({
+    where: { phoneNumber },
+    update: { otp, otpExpires: expires, verified: false },
+    create: {
+      phoneNumber,
+      otp,
+      otpExpires: expires,
+    },
+  })
+
+  // MOCK: In production, send SMS here
+  console.log(`[DEBUG] Sending OTP ${otp} to ${phoneNumber}`)
+
+  res.json({ ok: true, message: 'OTP sent' })
+})
+
+router.post('/phone/verify-otp', async (req, res) => {
+  const { phoneNumber, otp } = req.body;
+
+  if (!phoneNumber || !otp) {
+    return res.status(400).json({ error: 'Phone number and OTP are required' });
+  }
+
+  const record = await prisma.phoneLogin.findUnique({ where: { phoneNumber } });
+
+  if (!record) {
+    return res.status(401).json({ error: 'Invalid or expired OTP' });
+  }
+
+  const MAX_FAILED_ATTEMPTS = 5;
+
+  // Lockout check
+  if (record.failedAttempts >= MAX_FAILED_ATTEMPTS) {
+    return res.status(429).json({ error: 'Too many failed attempts. Please try again later.' });
+  }
+
+  // OTP validation
+  if (record.otp !== otp || !record.otpExpires || record.otpExpires < new Date()) {
+    // Increment failedAttempts
+    await prisma.phoneLogin.update({
+      where: { phoneNumber },
+      data: {
+        failedAttempts: (record.failedAttempts || 0) + 1,
+      },
+    });
+
+    return res.status(401).json({ error: 'Invalid or expired OTP' });
+  }
+
+  // OTP verified successfully, reset failedAttempts and update verified status
+  await prisma.phoneLogin.update({
+    where: { phoneNumber },
+    data: {
+      verified: true,
+      failedAttempts: 0,
+      otp: null,
+      otpExpires: null,
+    },
+  });
+
+  let user;
+
+  if (record.userId) {
+    user = await prisma.user.findUnique({ where: { id: record.userId } });
+
+    if (!user) {
+      return res.status(500).json({ error: 'User record not found for linked phone login' });
+    }
+  } else {
+    user = await prisma.user.create({ data: { email: `${phoneNumber}@phone` } });
+    await prisma.phoneLogin.update({
+      where: { phoneNumber },
+      data: { userId: user.id },
+    });
+  }
+
+  const token = jwt.sign({ userId: user.id }, JWT_SECRET!, { expiresIn: '7d' });
+
+  res.json({ user, token });
 });
 
 export default router;

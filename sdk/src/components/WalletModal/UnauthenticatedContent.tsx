@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   VStack,
   HStack,
@@ -8,75 +8,77 @@ import {
   Divider,
   Alert,
   AlertIcon,
+  Button,
+  Input,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  ModalCloseButton,
+  useDisclosure,
 } from '@chakra-ui/react'
 import { SocialLoginButton } from './LoginOnboarding/SocialLoginButton'
 import { EmailLogin } from './LoginOnboarding/EmailLogin'
-import { WalletList } from './WalletList'
-
-interface Chain {
-  chainId: number
-  name: string
-}
+import { Wallets } from './LoginOnboarding/Wallets'
 
 interface UnauthenticatedContentProps {
-  onlyWallets: boolean
-  rpcUrl: string
-  chainId?: number // optional default chain
+  showWallets?: boolean
+  showSocialLogins?: boolean
+  showEmailLogin?: boolean
+  showPhoneLogin?: boolean
+  showPasskeyLogin?: boolean
+  rpcUrl?: string
+  chainId: number
   onClose: () => void
 }
 
-const supportedChains: Chain[] = [
-  { chainId: 1, name: 'Ethereum Mainnet' },
-  { chainId: 56, name: 'Binance Smart Chain' },
-  { chainId: 5150, name: 'Cyph Custom Chain' },
-]
-
-const rpcUrls: Record<number, string> = {
-  1: 'https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID',
-  56: 'https://bsc-dataseed.binance.org/',
-  5150: '', // Overridden by prop.rpcUrl
-}
-
 export default function UnauthenticatedContent({
-  onlyWallets,
+  showWallets = false,
+  showSocialLogins = false,
+  showEmailLogin = false,
+  showPhoneLogin = false,
+  showPasskeyLogin = false,
   rpcUrl,
   chainId,
   onClose,
 }: UnauthenticatedContentProps) {
   const [loginError, setLoginError] = useState<string | null>(null)
-  const [, setIsConnecting] = useState(false)
+  const [isConnecting, setIsConnecting] = useState(false)
 
-  // Load selected chain from localStorage or fallback to default
-  const getInitialChain = (): Chain => {
-    if (typeof window !== 'undefined') {
-      const savedChainId = localStorage.getItem('selectedChainId')
-      if (savedChainId) {
-        const chain = supportedChains.find((c) => c.chainId === Number(savedChainId))
-        if (chain) return chain
-      }
-    }
-    return supportedChains.find((c) => c.chainId === chainId) ?? supportedChains[0]
-  }
-
-  const [selectedChain] = useState<Chain>(getInitialChain)
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('selectedChainId', selectedChain.chainId.toString())
-    }
-  }, [selectedChain])
+  // Phone login modal control
+  const { isOpen, onOpen, onClose: onPhoneClose } = useDisclosure()
+  const [phoneNumber, setPhoneNumber] = useState('')
 
   const handleLoginError = (message: string) => {
     setLoginError(message)
     setIsConnecting(false)
   }
 
-  // Determine RPC URL for selected chain
-  const currentRpcUrl =
-    selectedChain.chainId === 5150 ? rpcUrl : rpcUrls[selectedChain.chainId] ?? rpcUrl
+  const handlePhoneLoginSubmit = async () => {
+    setIsConnecting(true)
+    setLoginError(null)
+
+    try {
+      if (!phoneNumber) {
+        throw new Error('Please enter a valid phone number.')
+      }
+      // Your actual phone login logic here, e.g., SDK call
+      // await sdk.phoneLogin(phoneNumber)
+
+      setIsConnecting(false)
+      onPhoneClose()
+      onClose() // Close the modal after successful login
+    } catch (error: any) {
+      setIsConnecting(false)
+      setLoginError(error.message || 'Phone login failed')
+    }
+  }
 
   return (
-    <VStack spacing={4} align="stretch">
+    <VStack spacing={6} align="stretch" w="100%">
+      {/* Error Banner */}
       {loginError && (
         <Alert status="error" borderRadius="md">
           <AlertIcon />
@@ -84,88 +86,140 @@ export default function UnauthenticatedContent({
         </Alert>
       )}
 
-      {!onlyWallets && (
+      {/* Wallets */}
+      {showWallets && (
         <>
-          {/* Social Logins */}
-          <VStack align="stretch" spacing={2}>
-            <Text
-              fontSize="sm"
-              fontWeight="semibold"
-              color="gray.600"
-              _dark={{ color: 'gray.300' }}
-            >
-              SocialLogin
-            </Text>
-            <HStack spacing={1} wrap="wrap">
-              
-              <SocialLoginButton
-                provider="twitter"
-                onError={handleLoginError}
-                onStart={() => setIsConnecting(true)}
-                onFinish={() => setIsConnecting(false)}
-              />
-              <SocialLoginButton
-                provider="discord"
-                onError={handleLoginError}
-                onStart={() => setIsConnecting(true)}
-                onFinish={() => setIsConnecting(false)}
-              />
-              <SocialLoginButton
-                provider="instagram"
-                onError={handleLoginError}
-                onStart={() => setIsConnecting(true)}
-                onFinish={() => setIsConnecting(false)}
-              />
-            </HStack>
-          </VStack>
+          <Text
+            fontSize="sm"
+            fontWeight="semibold"
+            color="gray.600"
+            _dark={{ color: 'gray.300' }}
+          >
+            Connect Wallet
+          </Text>
 
-          <Divider />
-
-          {/* Email Login */}
-          <VStack align="stretch" spacing={2}>
-            <Text
-              fontSize="sm"
-              fontWeight="semibold"
-              color="gray.600"
-              _dark={{ color: 'gray.300' }}
-            >
-              Continue with Email
-            </Text>
-            <EmailLogin
-                provider="google"
-                onError={handleLoginError}
-                onStart={() => setIsConnecting(true)}
-                onFinish={() => setIsConnecting(false)}
-              />
-          </VStack>
-
+          <Wallets
+            rpcUrl={rpcUrl}
+            chainId={chainId}
+            onSelect={() => {
+              setIsConnecting(false)
+              onClose()
+            }}
+            onError={(e) => handleLoginError(e?.message ?? 'Wallet connection error')}
+            onConnectingChange={setIsConnecting}
+          />
           <Divider />
         </>
       )}
 
-      {/* Wallet Connect */}
-      <VStack align="stretch" spacing={2}>
-        <Text
-          fontSize="sm"
-          fontWeight="semibold"
-          color="gray.600"
-          _dark={{ color: 'gray.300' }}
+      {/* Social Logins */}
+      {showSocialLogins && (
+        <VStack spacing={3} align="center" w="100%">
+          <Text
+            fontSize="sm"
+            fontWeight="semibold"
+            textAlign="center"
+            color="gray.600"
+            _dark={{ color: 'gray.300' }}
+          >
+            Continue with Social
+          </Text>
+
+          <HStack spacing={3} justify="center" flexWrap="wrap">
+            <SocialLoginButton
+              provider="twitter"
+              onError={handleLoginError}
+              onStart={() => setIsConnecting(true)}
+              onFinish={() => setIsConnecting(false)}
+            />
+            <SocialLoginButton
+              provider="discord"
+              onError={handleLoginError}
+              onStart={() => setIsConnecting(true)}
+              onFinish={() => setIsConnecting(false)}
+            />
+            <SocialLoginButton
+              provider="instagram"
+              onError={handleLoginError}
+              onStart={() => setIsConnecting(true)}
+              onFinish={() => setIsConnecting(false)}
+            />
+          </HStack>
+          <Divider />
+        </VStack>
+      )}
+
+      {/* Email Login */}
+      {showEmailLogin && (
+        <>
+          <EmailLogin
+            provider="google"
+            onError={handleLoginError}
+            onStart={() => setIsConnecting(true)}
+            onFinish={() => setIsConnecting(false)}
+          />
+          <Divider />
+        </>
+      )}
+
+      {/* Phone Login */}
+      {showPhoneLogin && (
+        <>
+          <Button
+            width="100%"
+            colorScheme="blue"
+            isLoading={isConnecting}
+            loadingText="Logging in"
+            onClick={onOpen}
+            isDisabled={isConnecting}
+          >
+            Continue with Phone Number
+          </Button>
+
+          {/* Phone Login Modal */}
+          <Modal isOpen={isOpen} onClose={onPhoneClose} isCentered>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Phone Number Login</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Input
+                  placeholder="+1234567890"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  autoFocus
+                />
+              </ModalBody>
+
+              <ModalFooter>
+                <Button mr={3} onClick={onPhoneClose}>
+                  Cancel
+                </Button>
+                <Button
+                  colorScheme="blue"
+                  onClick={handlePhoneLoginSubmit}
+                  isLoading={isConnecting}
+                >
+                  Login
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+          <Divider />
+        </>
+      )}
+
+      {/* Passkey Login */}
+      {showPasskeyLogin && (
+        <Button
+          width="100%"
+          colorScheme="gray"
+          onClick={() => alert('Passkey login not implemented yet')}
+          isDisabled={true} // Disable until implemented
         >
-          Connect Wallet
-        </Text>
-        <WalletList
-          rpcUrl={currentRpcUrl}
-          chainId={selectedChain.chainId}
-          onSelect={() => {
-            setIsConnecting(false)
-            onClose()
-          }}
-          onError={(e) =>
-            handleLoginError(e?.message ?? 'An unknown error occurred')
-          }
-          onConnectingChange={setIsConnecting}
-        />
-      </VStack>
+          Continue with Passkey
+        </Button>
+      )}
     </VStack>
   )
 }

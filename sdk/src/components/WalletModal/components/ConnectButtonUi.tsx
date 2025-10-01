@@ -8,6 +8,7 @@ interface ConnectButtonUIProps extends ButtonProps {
   isLoggingOut: boolean
   themeColor: string
   buttonTextColor?: string
+  buttonSize?: 'sm' | 'md' | 'lg'
 }
 
 export default function ConnectButtonUI({
@@ -18,10 +19,12 @@ export default function ConnectButtonUI({
   isLoggingOut,
   themeColor,
   buttonTextColor,
+  buttonSize = 'md',
   ...rest
 }: ConnectButtonUIProps) {
   return (
     <Button
+      size={buttonSize}
       onClick={onOpen}
       bg={themeColor}
       color={buttonTextColor}

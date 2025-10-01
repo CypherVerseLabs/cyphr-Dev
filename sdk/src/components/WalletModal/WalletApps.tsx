@@ -1,4 +1,5 @@
 'use client'
+
 import React from 'react'
 import {
   Button,
@@ -7,6 +8,7 @@ import {
   Text,
   Image,
   Tooltip,
+  useColorModeValue,
 } from '@chakra-ui/react'
 
 export interface WalletAppsProps {
@@ -52,6 +54,12 @@ const WalletApps: React.FC<WalletAppsProps> = ({
   const normalizedId = normalizeIconId(iconId ?? connector?.id ?? connector?.name)
   const imageSrc = `/wallets/${normalizedId}.svg`
 
+  // 🌗 Theme-aware styles
+  const bg = useColorModeValue('white', 'black')
+  const color = useColorModeValue('gray.800', 'gray.100')
+  const borderColor = useColorModeValue('gray.200', 'gray.700')
+  const hoverBg = useColorModeValue('gray.50', 'gray.800')
+
   return (
     <Tooltip label={disabled ? 'Please wait...' : displayName} hasArrow>
       <Button
@@ -64,6 +72,14 @@ const WalletApps: React.FC<WalletAppsProps> = ({
         py={3}
         fontWeight="medium"
         data-testid={`wallet-${normalizedId}`}
+        bg={bg}
+        color={color}
+        borderColor={borderColor}
+        _hover={{ bg: hoverBg }}
+        _disabled={{
+          opacity: 0.6,
+          cursor: 'not-allowed',
+        }}
       >
         <Flex align="center" gap={2}>
           <Image

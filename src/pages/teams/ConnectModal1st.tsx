@@ -225,14 +225,14 @@ export default function ConnectModal({
                 onClose={onClose}
                 navLinks={navLinks}
                 handleLogout={handleLogout}
-                location={location}
-              />
+                location={location} tabs={[]} activeTab={''} setActiveTab={function (_tab: string): void {
+                  throw new Error('Function not implemented.')
+                } }              />
               <ConnectModalRightPane
                 rightPaneWidth={rightPaneWidth}
                 panePadding={panePadding}
                 resolvedRightBg={resolvedRightBg}
-                rightContent={rightContent} isLoggedIn={false}
-                />
+                rightContent={rightContent} isLoggedIn={false} activeTab={''}                />
             </Box>
           </ModalBody>
 

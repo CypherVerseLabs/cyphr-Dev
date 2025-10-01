@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
-import { Box, VStack, Button, useToast, useColorModeValue } from '@chakra-ui/react'
+import {
+  Box,
+  VStack,
+  Button,
+  useToast,
+  useColorModeValue,
+} from '@chakra-ui/react'
 import { MoonPayBuyWidget, MoonPayProvider } from '@moonpay/moonpay-react'
 import { Transak } from '@transak/transak-sdk'
 
@@ -18,14 +24,11 @@ export default function BuyTab({ moonpayApiKey, transakApiKey }: BuyTabProps) {
   const [transakLoading, setTransakLoading] = useState(false)
   const [transakWidget, setTransakWidget] = useState<Transak | null>(null)
 
-  const btnBg = useColorModeValue('gold.500', 'gold.300')
-  const btnHoverBg = useColorModeValue('gold.600', 'gold.400')
+  const inputBg = useColorModeValue('white', 'gray.600')
 
   useEffect(() => {
     return () => {
-      if (transakWidget) {
-        transakWidget.close()
-      }
+      if (transakWidget) transakWidget.close()
     }
   }, [transakWidget])
 
@@ -42,19 +45,18 @@ export default function BuyTab({ moonpayApiKey, transakApiKey }: BuyTabProps) {
       fiatCurrency: 'USD',
       widgetHeight: '550px',
       widgetWidth: '100%',
-      themeColor: useColorModeValue('000000', 'FFFFFF').replace('#', ''),
+      themeColor: '000000',
     }
 
-    const widget = new Transak(config as any)  // cast config as any to bypass typing issue
+    const widget = new Transak(config as any)
     setTransakWidget(widget)
     setTransakLoading(true)
     widget.init()
 
-    // Cast widget as any to use .on event listeners without TS errors
-    ;(widget as any).on('TRANSAK_ORDER_SUCCESSFUL', (orderData: { id: any }) => {
+    ;(widget as any).on('TRANSAK_ORDER_SUCCESSFUL', (orderData: { id: string }) => {
       toast({
-        title: 'Transak order successful',
-        description: `Order ID ${orderData.id}`,
+        title: 'Transak Order Successful',
+        description: `Order ID: ${orderData.id}`,
         status: 'success',
         duration: 5000,
         isClosable: true,
@@ -68,10 +70,10 @@ export default function BuyTab({ moonpayApiKey, transakApiKey }: BuyTabProps) {
   }
 
   return (
-    <Box p={4}>
+    <Box p={4} bg={inputBg} borderRadius="md">
       <VStack spacing={4}>
-        <MoonPayProvider apiKey={moonpayApiKey}>
-          {moonPayVisible && (
+        {moonPayVisible && (
+          <MoonPayProvider apiKey={moonpayApiKey}>
             <MoonPayBuyWidget
               variant="overlay"
               visible={moonPayVisible}
@@ -90,13 +92,12 @@ export default function BuyTab({ moonpayApiKey, transakApiKey }: BuyTabProps) {
                 border: 'none',
               }}
             />
-          )}
-        </MoonPayProvider>
+          </MoonPayProvider>
+        )}
+
         <Button
           width="100%"
-          bg={btnBg}
-          _hover={{ bg: btnHoverBg }}
-          color="black"
+          colorScheme="yellow"
           onClick={handleMoonPayShow}
         >
           Buy with MoonPay
@@ -104,9 +105,7 @@ export default function BuyTab({ moonpayApiKey, transakApiKey }: BuyTabProps) {
 
         <Button
           width="100%"
-          bg={btnBg}
-          _hover={{ bg: btnHoverBg }}
-          color="black"
+          colorScheme="yellow"
           isLoading={transakLoading}
           onClick={handleTransakShow}
         >

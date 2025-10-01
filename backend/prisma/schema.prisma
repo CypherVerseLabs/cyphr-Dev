@@ -14,15 +14,19 @@ enum WalletType {
 }
 
 model User {
-  id          Int       @id @default(autoincrement())
-  email       String    @unique
-  displayName String?
-  avatar      String?
-  isAdmin     Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  ApiKey      ApiKey[]
-  wallets     Wallet[]
-  accounts    Account[]    // <-- linked OAuth accounts
+  id                   Int                   @id @default(autoincrement())
+  email                String                @unique
+  password             String?               // Hashed password, nullable for OAuth-only users
+  displayName          String?
+  avatar               String?
+  isAdmin              Boolean               @default(false)
+  createdAt            DateTime              @default(now())
+  
+  ApiKey               ApiKey[]
+  wallets              Wallet[]
+  accounts             Account[]             // OAuth accounts
+  phoneLogins          PhoneLogin[]          // phone login records
+  webAuthnCredentials  WebAuthnCredential[]  // passkey / WebAuthn credentials
 }
 
 model Wallet {
@@ -65,19 +69,45 @@ model ApiKeyServices {
   ApiKey       ApiKey  @relation(fields: [apiKeyId], references: [id])
 }
 
-// NEW model to link OAuth providers to users
 model Account {
-  id               Int      @id @default(autoincrement())
-  userId           Int
-  provider         String   // e.g. "github", "discord", "twitter"
+  id                Int      @id @default(autoincrement())
+  userId            Int
+  provider          String   // e.g. "github", "discord", "twitter"
   providerAccountId String   // user ID from OAuth provider
-  accessToken      String?  // optional
-  refreshToken     String?  // optional
-  expiresAt        Int?     // optional, timestamp for token expiration
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  accessToken       String?  // optional
+  refreshToken      String?  // optional
+  expiresAt         Int?     // optional, timestamp for token expiration
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  user             User     @relation(fields: [userId], references: [id])
+  user              User     @relation(fields: [userId], references: [id])
 
-  @@unique([provider, providerAccountId]) // prevent duplicates
+  @@unique([provider, providerAccountId])
+}
+
+model PhoneLogin {
+  id             Int       @id @default(autoincrement())
+  userId         Int?      // nullable, if user linked
+  phoneNumber    String    @unique
+  otp            String?   // current OTP code
+  otpExpires     DateTime? // OTP expiration timestamp
+  verified       Boolean   @default(false)
+  failedAttempts Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user           User?     @relation(fields: [userId], references: [id])
+}
+
+model WebAuthnCredential {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  credentialId String   @unique // base64url encoded credential ID
+  publicKey    String   // base64url encoded public key
+  counter      Int      @default(0)
+  transports   String?  // e.g. "usb,ble,nfc"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id])
 }

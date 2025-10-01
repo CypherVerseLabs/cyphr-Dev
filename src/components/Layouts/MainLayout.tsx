@@ -21,7 +21,7 @@ import DarkModeToggle from '../DarkModeToggle'
 import { NavLink, Outlet } from 'react-router-dom'
 import logo1 from '../../../public/logo1.png'
 import { Link as RouterLink } from 'react-router-dom'
-import WalletModal from '../../../sdk/src/components/ConnectButton'
+import {CypherModal} from '../../../sdk/src/components/ConnectModal'
 
 
 const navLinks = [
@@ -94,10 +94,7 @@ export default function MainLayout() {
 
           <HStack spacing={4}>
             <DarkModeToggle />
-            <WalletModal themeColor="#c2a225" 
-            
-            />
-
+            <CypherModal themeColor="#c2a225" />
             
             <IconButton
               icon={<HamburgerIcon />}

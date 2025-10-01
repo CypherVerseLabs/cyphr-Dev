@@ -46,6 +46,7 @@ export default function ModalHeader({
     }
   }
 
+  // Theme-aware title text color
   const textColor = useColorModeValue(
     isDark ? 'yellow.300' : 'gray.800',
     isDark ? 'yellow.300' : 'gray.100'
@@ -54,6 +55,7 @@ export default function ModalHeader({
   return (
     <Flex align="center" gap={3} mb={2}>
       {renderLogo()}
+
       <Heading
         id="wallet-modal-title"
         as="h2"

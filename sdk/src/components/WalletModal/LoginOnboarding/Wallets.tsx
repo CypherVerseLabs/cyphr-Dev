@@ -9,10 +9,10 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 import { useConnect, useAccount, useDisconnect, Connector } from 'wagmi'
-import { useAuth } from '../../hooks/useAuth'
-import WalletOption from '../../../../src/components/WalletApps'
+import { useAuth } from '../../../hooks/useAuth'
+import WalletOption from '../WalletApps'
 
-export interface WalletListProps {
+export interface WalletsProps {
   rpcUrl?: string
   chainId?: number
   onSelect?: () => void
@@ -27,7 +27,7 @@ export interface WalletListProps {
   recommendedWallets?: string[]
 }
 
-export const WalletList: React.FC<WalletListProps> = ({
+export const Wallets: React.FC<WalletsProps> = ({
   chainId,
   onSelect,
   onDisconnect,
@@ -164,4 +164,4 @@ export const WalletList: React.FC<WalletListProps> = ({
   )
 }
 
-export default WalletList
+export default Wallets
